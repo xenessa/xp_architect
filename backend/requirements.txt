@@ -9,3 +9,4 @@ python-jose[cryptography]
 bcrypt
 python-multipart
 psycopg2-binary>=2.9.0
+email-validator
