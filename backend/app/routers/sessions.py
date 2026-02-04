@@ -153,6 +153,8 @@ def post_message(
             assistant_message=greeting,
             phase_completed=False,
             summary=None,
+            message=greeting,
+            phase_complete_suggested=False,
         )
 
     # RESUME_SESSION: AI re-engages when user returns (no user message stored)
@@ -179,14 +181,20 @@ def post_message(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=f"Claude request failed: {str(e)}",
             )
-        all_messages.append({"role": "assistant", "content": assistant_message})
+        marker = "[PHASE_COMPLETE]"
+        phase_complete_suggested = marker in assistant_message
+        visible_message = assistant_message.replace(marker, "").strip()
+
+        all_messages.append({"role": "assistant", "content": visible_message})
         session.all_messages = all_messages
         db.commit()
         db.refresh(session)
         return SessionMessageResponse(
-            assistant_message=assistant_message,
+            assistant_message=visible_message,
             phase_completed=False,
             summary=None,
+            message=visible_message,
+            phase_complete_suggested=phase_complete_suggested,
         )
 
     # BEGIN_PHASE: AI starts the new phase after summary approval (no user message stored)
@@ -211,14 +219,21 @@ def post_message(
                 detail=f"Claude request failed: {str(e)}",
             )
         all_messages.pop()
-        all_messages.append({"role": "assistant", "content": assistant_message})
+
+        marker = "[PHASE_COMPLETE]"
+        phase_complete_suggested = marker in assistant_message
+        visible_message = assistant_message.replace(marker, "").strip()
+
+        all_messages.append({"role": "assistant", "content": visible_message})
         session.all_messages = all_messages
         db.commit()
         db.refresh(session)
         return SessionMessageResponse(
-            assistant_message=assistant_message,
+            assistant_message=visible_message,
             phase_completed=False,
             summary=None,
+            message=visible_message,
+            phase_complete_suggested=phase_complete_suggested,
         )
 
     # Start session on first activity (for any other first message)
@@ -260,10 +275,13 @@ def post_message(
         session.all_messages = all_messages
         db.commit()
         db.refresh(session)
+        summary_message = "Summary generated. Please approve or request changes via POST /api/session/approve-summary."
         return SessionMessageResponse(
-            assistant_message="Summary generated. Please approve or request changes via POST /api/session/approve-summary.",
+            assistant_message=summary_message,
             phase_completed=True,
             summary=summary,
+            message=summary_message,
+            phase_complete_suggested=False,
         )
 
     all_messages.append({"role": "user", "content": user_content})
@@ -286,15 +304,21 @@ def post_message(
         )
         session.flagged_items = flagged
 
-    all_messages.append({"role": "assistant", "content": assistant_message})
+    marker = "[PHASE_COMPLETE]"
+    phase_complete_suggested = marker in assistant_message
+    visible_message = assistant_message.replace(marker, "").strip()
+
+    all_messages.append({"role": "assistant", "content": visible_message})
     session.all_messages = all_messages
     db.commit()
     db.refresh(session)
 
     return SessionMessageResponse(
-        assistant_message=assistant_message,
+        assistant_message=visible_message,
         phase_completed=False,
         summary=None,
+        message=visible_message,
+        phase_complete_suggested=phase_complete_suggested,
     )
 
 
