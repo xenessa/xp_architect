@@ -47,6 +47,8 @@ class SessionMessageResponse(BaseModel):
     assistant_message: str
     phase_completed: bool = False
     summary: str | None = None  # when phase just completed, summary for approval
+    message: str
+    phase_complete_suggested: bool = False
 
 
 class PhaseSummaryApproval(BaseModel):
