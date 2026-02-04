@@ -100,6 +100,14 @@ CRITICAL CONVERSATION RULE: Ask a maximum of TWO questions per message. Acknowle
 }
 
 
+PHASE_COMPLETION_INSTRUCTION = (
+    "When you feel you have gathered sufficient information for this phase, end your response with "
+    "the marker [PHASE_COMPLETE]. Before this marker, summarize what you've learned and confirm with "
+    "the user: \"I think I have a good understanding of this topic so far. Before we move on, is there "
+    "anything else you'd like to add about this area?\""
+)
+
+
 def _get_client() -> Anthropic:
     """Return Anthropic client using config API key."""
     settings = get_settings()
@@ -176,6 +184,8 @@ def get_phase_system_prompt(phase_num: int, scope: str, style_profile: dict[str,
     if style_profile:
         style_guidance = build_style_guidance(style_profile)
         base = base + "\n\nCOMMUNICATION STYLE GUIDANCE:\n" + style_guidance
+    # Add phase completion behavior instructions for all phases
+    base = base + "\n\nPHASE COMPLETION BEHAVIOR:\n" + PHASE_COMPLETION_INSTRUCTION
     return base
 
 
