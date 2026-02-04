@@ -37,10 +37,11 @@ router = APIRouter(prefix="/api/session", tags=["session"])
 
 
 def _session_to_response(session: DiscoverySession) -> SessionResponse:
-    """Build SessionResponse from DiscoverySession, including pending_phase_summary if any."""
+    """Build SessionResponse from DiscoverySession, including pending_phase_summary and all_messages."""
     pending = None
     if isinstance(session.phase_summaries, dict):
         pending = session.phase_summaries.get(f"{session.current_phase}_pending")
+    all_messages = session.all_messages if session.all_messages is not None else []
     return SessionResponse(
         id=session.id,
         current_phase=session.current_phase,
@@ -48,6 +49,7 @@ def _session_to_response(session: DiscoverySession) -> SessionResponse:
         started_at=session.started_at,
         completed_at=session.completed_at,
         pending_phase_summary=pending,
+        all_messages=all_messages,
     )
 
 
@@ -163,17 +165,26 @@ def send_message(
     try:
         assistant_message = get_assistant_reply(system_prompt, messages)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"Claude request failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Claude request failed: {str(e)}",
+        )
 
-    messages.append({"role": "assistant", "content": assistant_message})
+    marker = "[PHASE_COMPLETE]"
+    phase_complete_suggested = marker in assistant_message
+    visible_message = assistant_message.replace(marker, "").strip()
+
+    messages.append({"role": "assistant", "content": visible_message})
     session.all_messages = messages
     db.commit()
     db.refresh(session)
 
     return SessionMessageResponse(
-        assistant_message=assistant_message,
+        assistant_message=visible_message,
         phase_completed=False,
         summary=None,
+        message=visible_message,
+        phase_complete_suggested=phase_complete_suggested,
     )
 
 
