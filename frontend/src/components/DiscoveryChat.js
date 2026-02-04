@@ -479,6 +479,45 @@ function DiscoveryChat() {
   const chatEndRef = useRef(null);
   const chatAreaRef = useRef(null);
   const hasInitializedRef = useRef(false);
+  const draftTimeoutRef = useRef(null);
+
+  const DRAFT_STORAGE_KEY = 'discovery_chat_draft';
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (draft) {
+        setInputValue(draft);
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  // Debounced auto-save of draft as user types
+  useEffect(() => {
+    try {
+      if (draftTimeoutRef.current) {
+        clearTimeout(draftTimeoutRef.current);
+      }
+      draftTimeoutRef.current = setTimeout(() => {
+        if (inputValue) {
+          localStorage.setItem(DRAFT_STORAGE_KEY, inputValue);
+        } else {
+          localStorage.removeItem(DRAFT_STORAGE_KEY);
+        }
+      }, 500);
+    } catch {
+      // Ignore storage errors
+    }
+
+    return () => {
+      if (draftTimeoutRef.current) {
+        clearTimeout(draftTimeoutRef.current);
+      }
+    };
+  }, [inputValue]);
 
   const loadSession = async () => {
     setError('');
@@ -578,7 +617,6 @@ function DiscoveryChat() {
     const text = inputValue.trim();
     if (!text || sending || !session) return;
     if (session.status === 'COMPLETED') return;
-    setInputValue('');
     setMessages((prev) => [...prev, { role: 'user', content: text }]);
     setSending(true);
     setError('');
@@ -590,9 +628,16 @@ function DiscoveryChat() {
         setSummaryForApproval({ summary });
       }
       await loadSession();
+      setInputValue('');
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {
+        // Ignore storage errors
+      }
     } catch (err) {
       const detail = err.response?.data?.detail;
-      setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to send message.');
+      const detailMessage = Array.isArray(detail) ? detail.join(' ') : detail;
+      setError(detailMessage || 'Failed to send. Please try again.');
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setSending(false);
