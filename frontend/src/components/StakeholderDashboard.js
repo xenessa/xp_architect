@@ -24,7 +24,9 @@ const styles = {
   },
   header: {
     marginBottom: 32,
-    textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   welcome: {
     margin: 0,
@@ -32,6 +34,16 @@ const styles = {
     fontWeight: 600,
     color: '#0f172a',
     lineHeight: 1.3,
+  },
+  logoutBtn: {
+    padding: '8px 14px',
+    fontSize: 14,
+    fontWeight: 500,
+    color: '#64748b',
+    background: '#ffffffaa',
+    border: '1px solid #cbd5e1',
+    borderRadius: 999,
+    cursor: 'pointer',
   },
   card: {
     background: '#fff',
@@ -164,6 +176,11 @@ function StakeholderDashboard() {
 
   const handleBeginResume = () => navigate('/session');
   const handleViewReport = () => navigate('/session');
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   if (loading) {
     return (
@@ -183,6 +200,9 @@ function StakeholderDashboard() {
       <div style={styles.container}>
         <header style={styles.header}>
           <h1 style={styles.welcome}>Welcome back, {user?.name ?? 'there'}</h1>
+          <button type="button" style={styles.logoutBtn} onClick={handleLogout}>
+            Logout
+          </button>
         </header>
 
         {error && <div style={styles.error}>{error}</div>}
