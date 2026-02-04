@@ -1,0 +1,222 @@
+"""Project management routes for Solution Architects. All routes require SA role."""
+
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.dependencies import require_sa_role
+from app.models.project import Project
+from app.models.user import User
+from app.schemas.project import (
+    ProjectCreate,
+    ProjectDetailResponse,
+    ProjectListResponse,
+    ProjectProgressResponse,
+    ProjectResponse,
+    ProjectUpdate,
+    ProjectUserAdd,
+    ProjectUserResponse,
+)
+from app.services.project import (
+    activate_project_user,
+    add_user_to_project,
+    create_project,
+    get_project,
+    get_project_progress,
+    get_user_projects,
+    project_user_to_response,
+    update_project,
+)
+
+router = APIRouter(prefix="/api/projects", tags=["projects"])
+
+
+def project_to_response(p: Project) -> ProjectResponse:
+    """Build ProjectResponse from Project model (without progress stats)."""
+    return ProjectResponse(
+        id=p.id,
+        name=p.name,
+        description=p.description,
+        scope=p.scope,
+        instructions=p.instructions,
+        start_date=p.start_date,
+        end_date=p.end_date,
+        created_by=p.created_by,
+        created_at=p.created_at,
+    )
+
+
+@router.get("", response_model=ProjectListResponse)
+def list_projects(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectListResponse:
+    """List all projects created by the current SA with progress stats."""
+    projects = get_user_projects(db, current_user.id)
+    project_responses: list[ProjectResponse] = []
+
+    for p in projects:
+        progress = get_project_progress(db, p.id)
+        completion_percentage = (
+            round(progress.completed / progress.total_users * 100, 1)
+            if progress.total_users > 0
+            else 0.0
+        )
+        response = ProjectResponse(
+            id=p.id,
+            name=p.name,
+            description=p.description,
+            scope=p.scope,
+            instructions=p.instructions,
+            start_date=p.start_date,
+            end_date=p.end_date,
+            created_by=p.created_by,
+            created_at=p.created_at,
+            total_users=progress.total_users,
+            completed_users=progress.completed,
+            completion_percentage=completion_percentage,
+        )
+        project_responses.append(response)
+
+    return ProjectListResponse(projects=project_responses)
+
+
+@router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
+def create_project_route(
+    body: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectResponse:
+    """Create a new project. Sets created_by to current user."""
+    project = create_project(db, current_user.id, body)
+    return project_to_response(project)
+
+
+@router.get("/{project_id}", response_model=ProjectDetailResponse)
+def get_project_detail(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectDetailResponse:
+    """Get project details including users list and completion stats."""
+    project = get_project(db, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    users = [project_user_to_response(pu) for pu in project.project_users]
+    progress = get_project_progress(db, project_id)
+    return ProjectDetailResponse(
+        project=project_to_response(project),
+        users=users,
+        progress=progress,
+    )
+
+
+@router.put("/{project_id}", response_model=ProjectResponse)
+def update_project_route(
+    project_id: UUID,
+    body: ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectResponse:
+    """Update project. Only owner can update."""
+    project = get_project(db, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not the project owner",
+        )
+    updated = update_project(db, project_id, body)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    return project_to_response(updated)
+
+
+@router.post("/{project_id}/users", response_model=ProjectUserResponse, status_code=status.HTTP_201_CREATED)
+def add_user_to_project_route(
+    project_id: UUID,
+    body: ProjectUserAdd,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectUserResponse:
+    """Add a user to the project. Creates User if email doesn't exist, creates ProjectUser with INVITED and invite_token."""
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not the project owner",
+        )
+    project_user = add_user_to_project(db, project_id, body.email, body.name)
+    return project_user_to_response(project_user)
+
+
+@router.post("/{project_id}/users/{user_id}/activate", response_model=ProjectUserResponse)
+def activate_user_route(
+    project_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectUserResponse:
+    """Set project user status to ACTIVE (activation; email flow comes later)."""
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not the project owner",
+        )
+    project_user = activate_project_user(db, project_id, user_id)
+    if not project_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project user not found",
+        )
+    db.refresh(project_user)
+    return project_user_to_response(project_user)
+
+
+@router.get("/{project_id}/progress", response_model=ProjectProgressResponse)
+def get_progress_route(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectProgressResponse:
+    """Get project progress: total_users, not_started, in_progress, completed."""
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    return get_project_progress(db, project_id)

@@ -1,0 +1,96 @@
+============================================================
+Discovery Session started on 2026-01-22 11:42:54
+Project Scope: We use Salesforce Service Cloud currently for Customer Support requests. We need to add a chatbot to help handle all of the basic support requests and send anything that needs more context to be routed to a human agent.
+============================================================
+
+COMMUNICATION STYLE PROFILE
+------------------------------------------------------------
+Primary Style: Big-picture
+Secondary Style: Problem-focused
+Scores (lower = stronger preference):
+  - Detail-oriented: 18
+  - Big-picture: 8
+  - Story-driven: 14
+  - Problem-focused: 10
+
+Assessment Responses (ranks per question; 1=most preferred, 4=least):
+Option mapping: A=Detail-oriented, B=Big-picture, C=Story-driven, D=Problem-focused
+  - Question 1: Learning Preference: A=4 B=1 C=3 D=2
+  - Question 2: Frustration Triggers: A=3 B=2 C=1 D=4
+  - Question 3: Explanation Style: A=4 B=1 C=3 D=2
+  - Question 4: Decision Making: A=3 B=2 C=4 D=1
+  - Question 5: Communication Preference: A=4 B=2 C=3 D=1
+------------------------------------------------------------
+
+
+============================================================
+Moving to Phase 1: The Basics
+Team function, tools, departments, partners
+============================================================
+
+Claude: Let's start with the basics. Can you tell me about your team's function and what tools you currently use?
+
+You: Sure! My team is the Customer Support team. We help customers with any questions or issues with our products. We currently use Salesforce Service Cloud as our primary tool but we also have an internal home-grown system that we all hate that contains product specs that we have to reference regularly. We also use Microsoft Office products as well as Sharepoint and Teams.
+
+Claude: Thanks for that overview! So it sounds like you're juggling between Salesforce Service Cloud and this internal system for product specs - that context switching must be frustrating. 
+
+Before we dig into those pain points, help me understand the bigger picture of how your team fits into the organization. Which departments do you work most closely with? Like, when issues come up that you can't resolve directly, who are you typically reaching out to?
+
+------------------------------------------------------------
+
+You: The departments we work closely with are Finance, Product Development and Account Mangers.
+
+Claude: Got it - so Finance, Product Development, and Account Managers are your key partners. That's helpful context.
+
+Let me understand those relationships a bit better. When you're working with each of those groups, what typically triggers that interaction? For example, are you escalating certain types of issues to Product Development, or is it more collaborative than that?
+
+And on the Account Manager side - how does that relationship work? Are you handling different types of customer interactions, or is there overlap?
+
+------------------------------------------------------------
+
+You: For Finance, we work with them to resolve customer billing issues. For Product Development, we pass over support tickets to them via a Jira integration (which I forgot to mention as a tool, but we don't use it directly) that are related to product issues and bugs. And for the Account Managers, we work with them primarily when the customer has other questions related to their account that are beyond what a support rep can handle on their own. For example, if the customer needs to update their subscripton plan, that gets handed to the Account Manager so that they can work with them on the best subscription plan to meet their needs.
+
+Claude: That's really helpful - I'm getting a clearer picture of how information flows through your team. So you're kind of at the center, triaging and routing issues to the right places.
+
+A couple of follow-up questions on that:
+
+When you're passing things off - whether it's a billing issue to Finance or a subscription question to an Account Manager - how does that handoff actually happen today? Are you doing that within Salesforce, or is it more informal like emails or Teams messages?
+
+And on the Product Development side, you mentioned there's a Jira integration for bugs and product issues - does that work pretty smoothly, or are there gaps in that process?
+
+------------------------------------------------------------
+
+You: That handoff is happening through Salesforce. We are assinging the support ticket to their team queue where someone from their team picks it up and continues working it. For the Product Development side, it seems to work fine. You'd probably have to ask someone from that team though since I don't really interact with that part.
+
+Claude: That makes sense - the Jira piece is outside your direct view. Good to know the handoff through Salesforce queues is the standard process for Finance and Account Managers.
+
+Let me step back for a second to that internal system you mentioned earlier - the one everyone hates with the product specs. How often are you and your team jumping into that system during a typical customer interaction? And what kind of information are you looking for in there - is it technical specs, pricing details, feature documentation, or something else?
+
+------------------------------------------------------------
+
+You: We are looking at pretty much all of the above and we have to look up information on almost every transaction. Most of us use a split screen window view so that we can have Salesforce and our internal system up all the time. The system is pretty old so the user interface sucks and you have to go through multiple steps just to get to the info you need. And don't get me started on the copy/paste functionality!
+
+Claude: Okay, so you're basically living in both systems simultaneously - that split screen setup tells me everything about how critical that product information is to every interaction you're having.
+
+When you say "multiple steps" to get to the info you need - walk me through a typical scenario. Like, if a customer asks you something about their current plan's features, what's the journey you're taking through that internal system to answer that question? 
+
+And I'm curious about the copy/paste issue too - what's breaking there? Is it just clunky, or are there formatting problems when you're trying to pull information into Salesforce or other places?
+
+------------------------------------------------------------
+
+You: We are looking at pretty much all of the above and we have to look up information on almost every transaction. Most of us use a split screen window view so that we can have Salesforce and our internal system up all the time. The system is pretty old so the user interface sucks and you have to go through multiple steps just to get
+
+Claude: I think your message got cut off there - you were starting to walk me through the steps you have to take in that internal system. Can you finish that thought? 
+
+I want to understand the actual clicks and navigation you're doing when you need to look something up. And then we can talk about that copy/paste nightmare you mentioned!
+
+------------------------------------------------------------
+
+You: exitexit
+
+Claude: No problem - thanks for your time today! This was really helpful for understanding your team's setup and how you work with your key partners. I've got a good sense of the tool landscape and those pain points with the internal system.
+
+We'll pick this up again whenever you're ready to continue. Have a great day!
+
+------------------------------------------------------------
+

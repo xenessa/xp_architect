@@ -1,0 +1,601 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  getProject,
+  getProjectProgress,
+  addUserToProject,
+  activateProjectUser,
+} from '../services/api';
+
+const styles = {
+  page: {
+    minHeight: '100vh',
+    background: '#f5f7fa',
+  },
+  header: {
+    background: '#fff',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    padding: '20px 24px',
+    marginBottom: 24,
+  },
+  headerInner: {
+    maxWidth: 1200,
+    margin: '0 auto',
+  },
+  backBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 16,
+    padding: '6px 0',
+    fontSize: 14,
+    fontWeight: 500,
+    color: '#6b7280',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  projectName: {
+    margin: '0 0 12px 0',
+    fontSize: 26,
+    fontWeight: 600,
+    color: '#1a1a2e',
+  },
+  scope: {
+    margin: '0 0 12px 0',
+    fontSize: 15,
+    color: '#4b5563',
+    lineHeight: 1.5,
+    whiteSpace: 'pre-wrap',
+  },
+  instructions: {
+    margin: '0 0 12px 0',
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 1.5,
+    whiteSpace: 'pre-wrap',
+  },
+  dateRange: {
+    margin: 0,
+    fontSize: 14,
+    color: '#9ca3af',
+  },
+  main: {
+    maxWidth: 1200,
+    margin: '0 auto',
+    padding: '0 24px 24px',
+  },
+  section: {
+    background: '#fff',
+    borderRadius: 8,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    padding: 24,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    margin: '0 0 16px 0',
+    fontSize: 18,
+    fontWeight: 600,
+    color: '#1a1a2e',
+  },
+  progressSummary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    flexWrap: 'wrap',
+    marginBottom: 16,
+  },
+  progressText: {
+    margin: 0,
+    fontSize: 15,
+    color: '#4b5563',
+  },
+  progressBar: {
+    flex: '1 1 200px',
+    height: 10,
+    background: '#e5e7eb',
+    borderRadius: 5,
+    overflow: 'hidden',
+    display: 'flex',
+  },
+  progressBarSegment: {
+    height: '100%',
+    transition: 'width 0.2s',
+  },
+  stakeholderList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+  },
+  stakeholderRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '14px 0',
+    borderBottom: '1px solid #f3f4f6',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  stakeholderInfo: {
+    flex: '1 1 200px',
+  },
+  stakeholderName: {
+    margin: '0 0 4px 0',
+    fontSize: 15,
+    fontWeight: 600,
+    color: '#1a1a2e',
+  },
+  stakeholderEmail: {
+    margin: 0,
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  badge: {
+    display: 'inline-block',
+    padding: '4px 10px',
+    fontSize: 12,
+    fontWeight: 600,
+    borderRadius: 6,
+    textTransform: 'uppercase',
+  },
+  badgeInvited: {
+    background: '#fef3c7',
+    color: '#b45309',
+  },
+  badgeActive: {
+    background: '#dbeafe',
+    color: '#1d4ed8',
+  },
+  badgeCompleted: {
+    background: '#d1fae5',
+    color: '#047857',
+  },
+  discoveryStatus: {
+    fontSize: 13,
+    fontWeight: 500,
+    marginLeft: 8,
+  },
+  activateBtn: {
+    padding: '6px 14px',
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#fff',
+    background: '#2563eb',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  copyLinkBtn: {
+    padding: '6px 14px',
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#fff',
+    background: '#059669',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  copiedBtn: {
+    background: '#10b981',
+  },
+  addForm: {
+    display: 'flex',
+    gap: 12,
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTop: '1px solid #f3f4f6',
+  },
+  addFormGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: 500,
+    color: '#6b7280',
+  },
+  input: {
+    padding: '8px 12px',
+    fontSize: 14,
+    border: '1px solid #d1d5db',
+    borderRadius: 6,
+    outline: 'none',
+    minWidth: 180,
+  },
+  addBtn: {
+    padding: '8px 16px',
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#fff',
+    background: '#2563eb',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+  },
+  addBtnDisabled: {
+    opacity: 0.7,
+    cursor: 'not-allowed',
+  },
+  error: {
+    padding: 12,
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: 6,
+    color: '#b91c1c',
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  loading: {
+    textAlign: 'center',
+    padding: 48,
+    color: '#6b7280',
+    fontSize: 15,
+  },
+};
+
+const STATUS_BADGE_STYLES = {
+  INVITED: { ...styles.badge, ...styles.badgeInvited },
+  ACTIVE: { ...styles.badge, ...styles.badgeActive },
+  COMPLETED: { ...styles.badge, ...styles.badgeCompleted },
+};
+
+function calculateDetailedProgress(users) {
+  if (!users || users.length === 0) {
+    return { completedPct: 0, inProgressPct: 0, notStartedPct: 0 };
+  }
+
+  const totalPhases = users.length * 4; // 4 phases per user
+  let completedPhases = 0;
+  let inProgressPhases = 0;
+
+  users.forEach((user) => {
+    if (user.discovery_status === 'COMPLETED') {
+      // Fully complete = 4 phases
+      completedPhases += 4;
+    } else if (user.discovery_status === 'IN_PROGRESS') {
+      // Count approved phases as complete
+      const approved = user.phases_approved?.length || 0;
+      completedPhases += approved;
+      // Current phase counts as partial progress (half a phase)
+      inProgressPhases += 0.5;
+    }
+    // NOT_STARTED, no session, or INVITED = 0 phases
+  });
+
+  const completedPct = (completedPhases / totalPhases) * 100;
+  const inProgressPct = (inProgressPhases / totalPhases) * 100;
+  const notStartedPct = 100 - completedPct - inProgressPct;
+
+  return { completedPct, inProgressPct, notStartedPct };
+}
+
+function formatDiscoveryStatus(user) {
+  // Not registered yet
+  if (!user.user_id) {
+    return { text: 'Awaiting Registration', color: '#9ca3af' };
+  }
+
+  // No session started
+  if (!user.discovery_status || user.discovery_status === 'NOT_STARTED') {
+    return { text: 'Not Started', color: '#9ca3af' };
+  }
+
+  // Completed
+  if (user.discovery_status === 'COMPLETED') {
+    return { text: 'Discovery Complete', color: '#047857' };
+  }
+
+  // In progress - show phase detail
+  const phase = user.current_phase || 1;
+  const approvedCount = user.phases_approved?.length || 0;
+
+  if (approvedCount >= phase) {
+    return { text: `Phase ${phase} Approved`, color: '#1d4ed8' };
+  } else {
+    return { text: `In Progress - Phase ${phase}`, color: '#b45309' };
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  } catch {
+    return dateStr;
+  }
+}
+
+function ProjectDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [project, setProject] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [addName, setAddName] = useState('');
+  const [addEmail, setAddEmail] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState('');
+  const [activatingId, setActivatingId] = useState(null);
+  const [copiedToken, setCopiedToken] = useState(null);
+
+  const loadProject = async () => {
+    if (!id) return;
+    setError('');
+    setLoading(true);
+    try {
+      const [detailRes, progressRes] = await Promise.all([
+        getProject(id),
+        getProjectProgress(id),
+      ]);
+      setProject(detailRes.data.project);
+      setUsers(detailRes.data.users || []);
+      setProgress(progressRes.data);
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to load project.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProject();
+  }, [id]);
+
+  const handleBack = () => navigate('/dashboard');
+
+  const handleAddStakeholder = async (e) => {
+    e.preventDefault();
+    setAddError('');
+    const name = addName.trim();
+    const email = addEmail.trim();
+    if (!name || !email) {
+      setAddError('Name and email are required.');
+      return;
+    }
+    setAdding(true);
+    try {
+      await addUserToProject(id, email, name);
+      setAddName('');
+      setAddEmail('');
+      await loadProject();
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setAddError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to add stakeholder.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleActivate = async (userId) => {
+    setActivatingId(userId);
+    try {
+      await activateProjectUser(id, userId);
+      await loadProject();
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to activate user.');
+    } finally {
+      setActivatingId(null);
+    }
+  };
+
+  const handleCopyInvite = async (projectUserId, inviteToken) => {
+    if (!inviteToken) {
+      setError('No invite link available for this stakeholder.');
+      return;
+    }
+    const url = `${window.location.origin}/register?token=${encodeURIComponent(inviteToken)}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // Fallback for older browsers
+        window.prompt('Copy this invite link:', url);
+      }
+      setCopiedToken(projectUserId);
+      setTimeout(() => setCopiedToken(null), 2000);
+    } catch (err) {
+      // Best-effort: show a simple error
+      setError('Failed to copy invite link. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.loading}>Loading project…</div>
+      </div>
+    );
+  }
+
+  if (error && !project) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.main}>
+          <div style={styles.error}>{error}</div>
+          <button type="button" style={styles.backBtn} onClick={handleBack}>
+            ← Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.main}>
+          <div style={styles.loading}>Project not found.</div>
+          <button type="button" style={styles.backBtn} onClick={handleBack}>
+            ← Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const total = progress?.total_users ?? 0;
+  const completed = progress?.completed ?? 0;
+  const inProgress = progress?.in_progress ?? 0;
+  const notStarted = progress?.not_started ?? 0;
+  const { completedPct, inProgressPct, notStartedPct } = calculateDetailedProgress(users);
+
+  return (
+    <div style={styles.page}>
+      <header style={styles.header}>
+        <div style={styles.headerInner}>
+          <button type="button" style={styles.backBtn} onClick={handleBack}>
+            ← Back to Dashboard
+          </button>
+          <h1 style={styles.projectName}>{project.name}</h1>
+          {project.scope && <p style={styles.scope}>{project.scope}</p>}
+          {project.instructions && (
+            <p style={styles.instructions}>{project.instructions}</p>
+          )}
+          <p style={styles.dateRange}>
+            {formatDate(project.start_date)} – {formatDate(project.end_date)}
+          </p>
+        </div>
+      </header>
+
+      <main style={styles.main}>
+        {error && <div style={styles.error}>{error}</div>}
+
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>Progress</h2>
+          <div style={styles.progressSummary}>
+            <p style={styles.progressText}>
+              {completed}/{total} completed, {inProgress} in progress, {notStarted} not started
+            </p>
+            <div style={styles.progressBar}>
+              <div
+                style={{
+                  ...styles.progressBarSegment,
+                  width: `${completedPct}%`,
+                  background: '#10b981',
+                }}
+              />
+              <div
+                style={{
+                  ...styles.progressBarSegment,
+                  width: `${inProgressPct}%`,
+                  background: '#3b82f6',
+                }}
+              />
+              <div
+                style={{
+                  ...styles.progressBarSegment,
+                  width: `${notStartedPct}%`,
+                  background: '#e5e7eb',
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>Stakeholders</h2>
+          {users.length === 0 ? (
+            <p style={{ margin: 0, color: '#6b7280', fontSize: 14 }}>
+              No stakeholders yet. Add one below.
+            </p>
+          ) : (
+            <ul style={styles.stakeholderList}>
+              {users.map((u) => (
+                <li key={u.id} style={styles.stakeholderRow}>
+                  <div style={styles.stakeholderInfo}>
+                    <p style={styles.stakeholderName}>{u.name}</p>
+                    <p style={styles.stakeholderEmail}>{u.email}</p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={STATUS_BADGE_STYLES[u.status] || styles.badge}>
+                      {u.status}
+                    </span>
+                    {(() => {
+                      const { text, color } = formatDiscoveryStatus(u);
+                      return (
+                        <span style={{ ...styles.discoveryStatus, color }}>
+                          {text}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  {u.status === 'INVITED' && u.user_id && (
+                    <button
+                      type="button"
+                      style={styles.activateBtn}
+                      onClick={() => handleActivate(u.user_id)}
+                      disabled={activatingId === u.user_id}
+                    >
+                      {activatingId === u.user_id ? 'Activating…' : 'Activate'}
+                    </button>
+                  )}
+                  {u.status === 'INVITED' && !u.user_id && (
+                    <button
+                      type="button"
+                      style={{
+                        ...styles.copyLinkBtn,
+                        ...(copiedToken === u.id ? styles.copiedBtn : {}),
+                      }}
+                      onClick={() => handleCopyInvite(u.id, u.invite_token)}
+                    >
+                      {copiedToken === u.id ? 'Copied!' : 'Copy Invite Link'}
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form onSubmit={handleAddStakeholder} style={styles.addForm}>
+            <div style={styles.addFormGroup}>
+              <label style={styles.label} htmlFor="add-name">
+                Name
+              </label>
+              <input
+                id="add-name"
+                type="text"
+                value={addName}
+                onChange={(e) => setAddName(e.target.value)}
+                style={styles.input}
+                placeholder="Stakeholder name"
+                disabled={adding}
+              />
+            </div>
+            <div style={styles.addFormGroup}>
+              <label style={styles.label} htmlFor="add-email">
+                Email
+              </label>
+              <input
+                id="add-email"
+                type="email"
+                value={addEmail}
+                onChange={(e) => setAddEmail(e.target.value)}
+                style={styles.input}
+                placeholder="email@example.com"
+                disabled={adding}
+              />
+            </div>
+            <button
+              type="submit"
+              style={{ ...styles.addBtn, ...(adding ? styles.addBtnDisabled : {}) }}
+              disabled={adding}
+            >
+              {adding ? 'Adding…' : 'Add Stakeholder'}
+            </button>
+          </form>
+          {addError && <div style={{ ...styles.error, marginTop: 12 }}>{addError}</div>}
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export default ProjectDetail;

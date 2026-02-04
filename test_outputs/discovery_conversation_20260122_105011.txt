@@ -1,0 +1,110 @@
+============================================================
+Discovery Session started on 2026-01-22 10:50:11
+Project Scope: **Project Scope Summary:**  We are creating an interactive, AI-guided version of *The AI Co-Lab* workbook using a no-code chatbot platform like Botpress or Voiceflow. The MVP will include 3–4 core exercises (such as the Fear Audit and Media Diet Check) delivered through a conversational interface where an AI coach asks questions step-by-step, adapts to user responses, and provides summaries. No user accounts or custom coding are required—the platform handles conversation flow and OpenAI integration, while we focus on tailoring the coaching prompts and content. The goal is to launch a fully functional, web-accessible coaching bot within a few weeks, offering an engaging, hands-on companion to our book without significant cost or technical overhead.
+============================================================
+
+
+============================================================
+Moving to Phase 1: The Basics
+Team function, tools, departments, partners
+============================================================
+
+Claude: Let's start with the basics. Can you tell me about your team's function and what tools you currently use?
+
+You: I am part of the solution design design team. We are tasked with designing solutions that our development team can build apps for. Currently, we are using a mix of G-Suite apps (Docs, Sheets, Slides, etc), Lucidchart, Miro and Slack. i think that is all.
+
+Claude: Great, thanks for that overview! So you're designing solutions that then get handed off to the development team to build. That's a crucial role.
+
+I'm curious about the flow of your work - when you're designing these solutions, what departments or teams do you typically work with most closely? I imagine development is a big one, but are there others you collaborate with regularly?
+
+------------------------------------------------------------
+
+You: Sorry. I'm just here to confirm the scope. My team designed it so we are the people that you need to ask any clarifying questions to so that you can take this project to your developers to build.
+
+Claude: Ah, I see! Thank you for clarifying that. So you're the solution design team that created the requirements for this project, and I'm here to make sure I understand everything correctly before our development team starts building.
+
+In that case, let me shift gears. Can you walk me through what this project is about? What are you looking to have built, and what problem is it solving for you or your stakeholders?
+
+------------------------------------------------------------
+
+You: We created a book set that contains a guidebook and a companion workbook. We decided that we wanted to make the workbook into an app. We felt that would drive the value. Especially if we could make an app that felt fun and interactive. The problem it is solving for our stakeholder, or maybe a better way to put that is, what value it provides, is higher user adoption and a broader marketing audience.
+
+Claude: That's really interesting - turning a workbook into an interactive app to boost engagement. I can see how that would make it more accessible and appealing than a traditional workbook format.
+
+So when you say "stakeholder" - who is that exactly? Is that someone internal to your organization, or are we talking about external clients or users? And help me understand the relationship between the guidebook and the workbook - do users need both, or does the app workbook stand alone?
+
+------------------------------------------------------------
+
+You: Stakeholder in this context are internal to my organization. It's what the C-Suite Executives perceive as value. And the relationship between the guidebook and the workbook...the guidebook is standalone and I guess the workbook could be too but I think it gets more value as a set and there are cross-references between the two.
+
+Claude: Got it, so the C-Suite sees this as a way to increase adoption and reach a wider audience. That makes sense.
+
+You mentioned there are cross-references between the guidebook and the workbook. In the app version of the workbook, how are you envisioning that working? Will users still have the physical guidebook, or are you planning to incorporate guidebook content into the app somehow? 
+
+And actually, stepping back a bit - who is the end user of this workbook app? Are we talking about employees within your organization, external clients, the general public?
+
+------------------------------------------------------------
+
+You: That first question is a really good question that I hadn't thought about. My assumption was that they would have both the guidebook and the app. But now you've given me an idea to consider. For now, let's assume they need the physical guidebook. There are a few things that I'd need to think through if I went down the path of incorporating guidebook content. The end user is the general public.
+
+Claude: Okay, great - so the general public will have the physical guidebook and use the app as their interactive workbook companion. That's helpful context.
+
+Since this is going out to the general public, I'm curious about a few things:
+
+First, what does the current physical workbook look like in terms of structure? Is it exercises, worksheets, reflection prompts - what kind of activities are in there?
+
+And second, when you say you want it to feel "fun and interactive" - do you have any specific ideas or examples of what that means to you? Like gamification elements, multimedia, progress tracking, or something else entirely?
+
+------------------------------------------------------------
+
+You: All of the above. Second,for me that gamefication elements and progress tracking mostly. Things to keep user engagement high.
+
+Claude: Nice - gamification and progress tracking are great for keeping people coming back. I can see how that would drive the adoption goals you mentioned.
+
+Let me ask about the first part - the structure of the physical workbook. What kinds of activities or exercises does it contain? Are we talking about fill-in-the-blank questions, longer written reflections, checklists, assessments? Just trying to get a sense of what needs to be translated into the app format.
+
+------------------------------------------------------------
+
+You: exit
+
+Claude: No problem! Thanks for your time today. This has been really helpful for understanding the project. If you think of anything else or want to continue our conversation, just let me know. Have a great day!
+
+------------------------------------------------------------
+
+You: end
+
+Claude: # Discovery Interview Summary
+
+## Project Overview
+The solution design team has created a book set (guidebook + workbook) and wants to convert the workbook into an interactive mobile app to increase user adoption and broaden their marketing audience.
+
+## Key Information Gathered
+
+**Team & Tools:**
+- Solution design team responsible for creating solutions for development team to build
+- Current tools: G-Suite (Docs, Sheets, Slides), Lucidchart, Miro, Slack
+
+**Project Details:**
+- Converting physical workbook into app format
+- Guidebook remains physical (for now)
+- Cross-references exist between guidebook and workbook
+- End users: General public
+- Stakeholders: Internal C-Suite executives
+
+**App Vision:**
+- Fun and interactive experience
+- Gamification elements
+- Progress tracking
+- Goal: Drive higher user engagement and adoption
+
+## Outstanding Questions
+1. What specific activities/exercises are in the physical workbook? (fill-in-blank, reflections, checklists, assessments, etc.)
+2. What specific gamification features are envisioned?
+3. How should cross-references to the physical guidebook work in the app?
+4. Future consideration: Incorporating guidebook content into app?
+
+## Next Steps
+Need to continue discovery to understand workbook content structure and detailed feature requirements.
+
+------------------------------------------------------------
+

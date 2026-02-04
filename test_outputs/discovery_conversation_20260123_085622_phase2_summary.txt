@@ -1,0 +1,33 @@
+============================================================
+PHASE 2 SUMMARY: Targeted Follow-ups
+============================================================
+
+# Phase 2 Highlights - Key Clarifications
+
+Here are the highlights from our follow-up conversation - anything missing or wrong?
+
+**Lead Routing & Assignment**
+- Regional round-robin based on email inbox source (not customer location), solving the "free-for-all" distribution problem while maintaining regional structure for territories, marketing focus, and reporting
+
+**White Glove Package Handling**  
+- Team leads carry these premium deals alongside management duties; some auto-route by email source, others discovered mid-process triggering team lead notification who decides involvement level based on capacity
+
+**Quote Complexity & Win Process**
+- Revisions can involve any combination of pricing, itinerary, dates, or package changes; need change tracking for pattern analysis (not currently possible); deals won at 50% deposit + signature, triggering auto-notification to 3rd party booking department
+
+**Sales Stages & Forecasting Structure**
+- Standardize existing stages (New Lead → Working → Qualified/Disqualified → Discovery → Quote Review → Booked/Lost) with set probabilities but rep override flexibility; quarterly/annual forecasts presented monthly with emphasis on best-case deals
+
+**Mobile-First Requirements**
+- Full CRM functionality needed offline for 2-4 hour periods during customer meetings at cafes/parks/satellite offices - this solves current spreadsheet sync conflicts that create pipeline discrepancies
+
+**Activity Tracking Philosophy**
+- All interaction types (calls, emails, in-person, video) with outcomes (AI-assisted), actionable next steps, and notes; encourage through smart design rather than hard enforcement since team has zero CRM experience
+
+**Document Consolidation Strategy**  
+- All customer files (quotes, correspondence, contracts, photos - "multitude of things") accessible in Salesforce to eliminate system-switching; technical SharePoint integration approach determined with IT; 3 years historical data migrated
+
+**Loss Tracking for Coaching**
+- Structured loss reasons with "Other" option visible to team leads for coaching and leadership for strategy - addressing current gap in understanding why deals are lost
+
+============================================================

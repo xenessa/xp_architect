@@ -1,0 +1,514 @@
+============================================================
+Discovery Session started on 2026-01-22 12:07:19
+Project Scope: Fix a support ticket routing problem that we are having in Salesforce.
+============================================================
+
+COMMUNICATION STYLE PROFILE
+------------------------------------------------------------
+Primary Style: Detail-oriented
+Secondary Style: Problem-focused
+Scores (lower = stronger preference):
+  - Detail-oriented: 5
+  - Big-picture: 20
+  - Story-driven: 15
+  - Problem-focused: 10
+
+Assessment Responses (ranks per question; 1=most preferred, 4=least):
+Option mapping: A=Detail-oriented, B=Big-picture, C=Story-driven, D=Problem-focused
+  - Question 1: Learning Preference: A=1 B=4 C=3 D=2
+  - Question 2: Frustration Triggers: A=1 B=4 C=3 D=2
+  - Question 3: Explanation Style: A=1 B=4 C=3 D=2
+  - Question 4: Decision Making: A=1 B=4 C=3 D=2
+  - Question 5: Communication Preference: A=1 B=4 C=3 D=2
+------------------------------------------------------------
+
+
+============================================================
+Moving to Phase 1: The Basics
+Team function, tools, departments, partners
+============================================================
+
+Claude: Let's start with the basics. Can you tell me about your team's function and what tools you currently use?
+
+You: We are a customer support team that uses Salesforce Service Cloud and ALEX, our home-grown product tool.
+
+Claude: Great, thanks for that. So you're handling customer support with Salesforce Service Cloud and ALEX. 
+
+Can you help me understand what ALEX does specifically? I want to make sure I understand how it fits into your workflow alongside Salesforce.
+
+------------------------------------------------------------
+
+You: ALEX contains all product information from the BOM to the different subscription packages available for it. Unfortunately, Salesforce doesn't have product detail, only product name, so for almost every support request we have to look up the product information in ALEX. It's very frustrating and time consuming. It would be so much easier if everything was in Salesforce.
+
+Claude: That does sound frustrating - having to switch between systems for nearly every support request definitely adds friction. 
+
+So when you say ALEX has everything from BOM to subscription packages, what specific product details are you typically looking up during a support interaction? I'm trying to understand which data points are most critical to have at your fingertips.
+
+Also, how many times per day would you estimate your team is jumping between Salesforce and ALEX?
+
+------------------------------------------------------------
+
+You: We are typically looking up specific product details like the most current version, any known critical issues, update windows, things like that. We are accessing almost every time we have a support reqeust. So we are in it at least 90% of the time.
+
+Claude: 90% of the time - that's significant. So it's really become a core part of your workflow despite the friction.
+
+When you look up those details - current version, critical issues, update windows - are you just viewing that information to answer the customer's question, or are you also documenting any of it back into Salesforce for the case record?
+
+And I'm curious about the other departments you work with. When these support requests come in, are there other teams you need to loop in, or is your team typically handling things end-to-end?
+
+------------------------------------------------------------
+
+You: We are often copy/pasting info back into the support ticket. And that is a pain! The copy/paste really sucks! And for the other teams we work with, we work with Finance, Product Development and Account Mangers.
+
+Claude: The copy-paste loop definitely adds up when you're doing it on 90% of tickets. 
+
+Let me understand the interactions with those other teams - Finance, Product Development, and Account Managers. What triggers you to involve each of them? Are there specific types of support requests that require their input, or is it more situational?
+
+And when you do need to bring them in, how does that typically work - are you tagging them in Salesforce, emailing them separately, or something else?
+
+------------------------------------------------------------
+
+You: My team does a first pass on all support tickets to understand the issue and see if they can resolve it on first pass. If they cannot, they engage the team that will be able to assist. One thing I forgot to mention is that we also have a tier 2 that would handle any outliers that don't get forwarded to another department for resolution. If it's a Finance issue then we would forward the support request to the Finance team. If it's a Product Development issue we forward the support request to the Product team and if it's an account-related issue we forward those to the Account Manager.
+
+Claude: Got it, so you're doing initial triage, resolving what you can, and routing the rest either to tier 2 or to the appropriate department. That makes sense.
+
+When you say "forward the support request" - are you actually reassigning the case in Salesforce to those teams, or are you keeping ownership of the ticket and just collaborating with them to get answers?
+
+And I'm curious - when you engage Finance, Product Development, or Account Managers, do they also need to access ALEX for product information, or is that mainly just a support team tool?
+
+------------------------------------------------------------
+
+You: We forward the case in Salesforce to the team queue (Finance, Product Development). For Account Managers we forward it to the specific Account Manager assigned to the account. Those teams are using ALEX too, although I think Product Development has an integration between Jira and ALEX. Jira is their primary tool.
+
+Claude: Interesting - so Product Development has managed to get some kind of integration between Jira and ALEX. Do you know if that integration pulls product data into Jira automatically, or is it more of a link between the two systems?
+
+I'm asking because it sounds like they may have solved a similar problem to what you're facing with Salesforce, and understanding how they did it could be useful.
+
+Also, when Finance and the Account Managers are working in ALEX, are they looking up the same types of product information you are - versions, critical issues, update windows - or are they focused on different data points?
+
+------------------------------------------------------------
+
+You: For the Jira question you'd have to talk to someone from Product Development. I'm not really sure. All I know is that Salesforce connects with Jira but I don't know what is in Jira or how it's connected to anything else. I'm guessing Finance and Account Managers are probably looking at a slightly different subset of data but that's another question I can't answer for sure.
+
+Claude: That's totally fair - I appreciate you being clear about what you know versus what would need to come from those other teams. It sounds like Product Development would be a key group to talk to about the Jira-ALEX integration and the Salesforce-Jira connection.
+
+Let me shift gears a bit. Within your support team, who are the key stakeholders or decision-makers when it comes to your tools and processes? Who would ultimately need to sign off on any changes to how Salesforce and ALEX work together?
+
+------------------------------------------------------------
+
+You: For the support team it would be my manager, who is the VP of Customer Success. To get Salesforce and ALEX to work together you'd probably have to include the CTO or his designated representative.
+
+Claude: Perfect - so VP of Customer Success for the support side, and CTO or their designate for the technical integration piece.
+
+Before we move forward, I want to make sure I have a clear picture of your current situation. Let me recap what I've heard:
+
+- Your team does initial triage on all support tickets
+- You're jumping into ALEX on about 90% of requests to look up product details - current version, critical issues, update windows
+- You're then copy-pasting that information back into Salesforce tickets
+- Cases get resolved by your team, escalated to tier 2, or forwarded to Finance, Product Dev, or specific Account Managers
+- Those other teams are also using ALEX, and Product Dev has some kind of Jira-ALEX integration
+
+Does that sound accurate? And is there anything else about how your team functions day-to-day that I should understand?
+
+------------------------------------------------------------
+
+You: That sounds right to me. I can't think of anything else at the moment.
+
+Claude: Great, I think I have a solid understanding of the basics - your team's function, the tools you're using, and who your key partners are.
+
+One last question for this part: roughly how large is your support team, and do you know approximately how many support requests you handle in a typical day or week? I'm trying to get a sense of the scale we're talking about.
+
+------------------------------------------------------------
+
+You: We have 50 Tier 1 support reps and 10 Tier 2. We handle approx. 300 requests per day.
+
+Claude: 300 requests a day with 90% requiring an ALEX lookup - that really puts the copy-paste issue into perspective. That's a lot of context switching across your team.
+
+Alright, I think I have a good foundation here. I'd like to move into understanding the specific problems and pain points you're experiencing in more detail. 
+
+You've already mentioned the frustration with switching between systems and the copy-paste workflow. When you think about your day-to-day work, what's the biggest impact of this current setup? Is it mainly the time it takes, or are there other issues - like errors, inconsistencies, or things falling through the cracks?
+
+------------------------------------------------------------
+
+You: It's probably a combination of all of that. The copy/paste from ALEX to Salesforce is prone to errors. Some reps aren't as good about correcting those errors which can cause issues downstream.
+
+Claude: That makes sense - when you're doing something repetitive hundreds of times a day, errors are going to slip through, and not everyone has the same attention to detail.
+
+What kind of issues happen downstream when incorrect product information gets into a Salesforce ticket? Does it cause problems for Finance, Product Dev, or Account Managers when they receive forwarded cases? Or does it create issues for customers?
+
+And when you say "some reps aren't as good about correcting those errors" - is that because they don't notice them, or is it more that they're rushed and don't have time to double-check everything?
+
+------------------------------------------------------------
+
+You: The kind of issues that happen downstream may be something like the rep copy/pasted the wrong subscription package into the ticket and the Account Manager submits an upgrade proposal with the wrong subscription type. Granted, the Account Manager should notice the issue, but you have the same problem there with some people noticing and others who either don't or don't care enough to check. For the reps, I think it's the same. They either don't notice it, they don't care enough to double-check it or they don't have the time because they are overworked.
+
+Claude: So the errors can have real business impact - like an upgrade proposal going out with the wrong subscription type. And you're seeing the same pattern at multiple levels: some people catch the errors, others don't, whether that's due to attention, motivation, or workload.
+
+When something like that wrong upgrade proposal happens, what's the fallout? Does it just get caught and corrected before it goes to the customer, or have there been cases where it's created bigger problems - like wrong pricing, delayed deals, or customer confusion?
+
+I'm also curious - you mentioned reps being overworked. Is that primarily because of the time spent on the ALEX-Salesforce workflow, or are there other factors contributing to that?
+
+------------------------------------------------------------
+
+You: There have been a few cases where the customer was given the wrong subscription information, maybe for a lower priced product and the Account Manager doesn't realize the mistake until the metrics start coming in. It's really difficult to go to the customer now and say you screwed up and need to charge them more. As for the reps, I think most of it is because of the inefficiences with the ALEX data. It takes us at least twice the amount of time to handle a case than it would if the information was right there in Salesforce.
+
+Claude: Wow - twice the amount of time. And those pricing errors with customers are not just inconvenient, they're potentially damaging to customer relationships and revenue.
+
+When you say it takes twice as long, are you able to quantify that more specifically? Like, what's the average time to handle a case now versus what you think it should be? I'm trying to understand the actual time impact per ticket.
+
+And have these pricing errors happened frequently enough that leadership is aware of the issue, or are they relatively rare occurrences that fly under the radar?
+
+------------------------------------------------------------
+
+You: I might be exaggerating a bit when I say "twice" but it sure feels like twice! On average a tier 1 ticket can be resolved or routed in around 5 minutes. If the information was in Salesforce I'm guessing we could drop handle time to around 3 minutes but I don't have solid data to back up that guess.
+
+Claude: That's helpful - even if it's an estimate, going from 5 minutes to 3 minutes per ticket adds up fast. At 300 tickets a day, that's 600 minutes saved daily, or 10 hours of capacity back to the team. That's meaningful.
+
+And what about the pricing errors - how often are those happening? Is it once a month, once a quarter, or more frequent than that?
+
+Also, I'm curious about the tier 2 team. You mentioned they handle outliers that don't get forwarded to other departments. Are they experiencing the same ALEX-Salesforce friction, or do they have different pain points since they're dealing with more complex issues?
+
+------------------------------------------------------------
+
+You: The pricing errors probably happen around once per quarter. The Tier 2 team has the same friction with ALEX.
+
+Claude: Got it - so the pricing errors are infrequent but high-impact when they do occur, and tier 2 is dealing with the same ALEX friction on more complex cases.
+
+Let me ask about the quality and completeness of the data itself. When you're looking up information in ALEX - like current version, critical issues, update windows - is that information always accurate and up-to-date? Or are there times when ALEX doesn't have what you need, or the information is outdated?
+
+I'm trying to understand if the problem is purely about the separation of systems, or if there are also data quality issues to consider.
+
+------------------------------------------------------------
+
+You: The information is always accurate and updated. It's primarily updated via the Jira feed. It's tightly integrated for Product Development. There may be a slight delay when something gets updated but it's not much of a delay.
+
+Claude: So ALEX itself is reliable - it's getting updated from Jira and staying current. That's good to know. The problem really is just the need to jump between systems and manually move information over.
+
+You mentioned there "may be a slight delay" when something gets updated from Jira. Do you know roughly how long that delay is - minutes, hours? And has that delay ever caused an issue where a rep gave out outdated information to a customer?
+
+Also, thinking about the information you pull from ALEX - current version, critical issues, update windows - is that pretty much the complete list of what you need, or are there other product details you regularly look up?
+
+------------------------------------------------------------
+
+You: The delay is only a matter of a few minutes. Everyone knows this is the case so they always make sure to double-check the information before resolving their case. For product information, that pretty much covers it. We might also look at the product lifecycleand if it's slated for replacement or decomission.
+
+Claude: Good - so the delay is minimal and people have adapted to it. And product lifecycle/decommission status is another key data point you need.
+
+Let me understand the workflow a bit better. When a support request comes in, what prompts you to go look something up in ALEX? Is it that the customer is asking a specific question about their product, or do you routinely pull up ALEX just to have context about what they're working with?
+
+And when you do look it up, are you searching by product name, account number, or something else?
+
+------------------------------------------------------------
+
+You: We routinely pull up ALEX if the case is tagged as Product related, which is most of the cases we recieve. When we search we are searching by product name or product number, depending on what the customer has in their ticket.
+
+Claude: So it's become standard practice - if it's tagged as product-related, you're going to ALEX. And you're searching by either product name or product number based on what the customer provides.
+
+When you search in ALEX, does it usually give you one clear result, or are there times when you get multiple products with similar names and have to figure out which one is actually the right match? 
+
+And once you find the right product in ALEX, is all that information - version, critical issues, update windows, lifecycle status - displayed on one screen, or are you clicking through multiple pages to gather everything you need?
+
+------------------------------------------------------------
+
+You: We can get multiple results sometimes, especially if there are bundles and things like that. It's usually easy to identify the right one though. A bundle will show as a bundle and unless the case specifically references the bundle we will assume it's the product they are talking about. There will only ever be one active product with the name. Where you could see multiple show on a screen would be where you have a "deactived" or "delayed" status product show up, but it's only the active one we care about. Once we click on that product we have a screen with multiple tabs. We have to click to the tab we need, or potentially multiple tabs, to get to the info.
+
+Claude: Okay, so you're navigating through tabs in ALEX to find the specific details you need. That's adding clicks and time to each lookup.
+
+When you're pulling information from multiple tabs - say you need current version from one tab and critical issues from another - are you making multiple trips back and forth between ALEX and Salesforce to copy-paste each piece? Or do you gather everything you need first and then paste it all at once into the ticket?
+
+And is there a particular tab or piece of information that you find yourself needing more frequently than others?
+
+------------------------------------------------------------
+
+You: I think most people are probably going back and forth but you might have a few people who compile in notepad or something and then paste it all at once. The one tab we pretty much always need is the critical issues and also the versions tab.
+
+Claude: So critical issues and versions are the must-haves on nearly every product-related ticket, and most reps are doing the back-and-forth dance between systems.
+
+When you paste this information into Salesforce, where does it go? Are you putting it in a notes field, a description field, or are there specific fields in Salesforce where certain product data is supposed to live?
+
+And is there any standardization around how reps format or document this information, or does everyone kind of do it their own way?
+
+------------------------------------------------------------
+
+You: Yeah, so that's one place we really need to improve. I don't think it's part of this project though. They're really in a hurry for this chatbot. But currently, the data they are copy/pasting is going into the Description field. But then they have to use some of it to fill out other fields on the case in order to be able to resolve the case.
+
+Claude: Ah, interesting - so they're pasting into Description but then also need to pull specific details out to populate other required fields on the case. That sounds like another layer of manual work.
+
+You mentioned "they're really in a hurry for this chatbot" - can you tell me more about that? What chatbot are you referring to, and how does that tie into what we've been discussing?
+
+------------------------------------------------------------
+
+You: I'm referring to the executives really wanting a chatbot, which is what the scope of this project is about, isn't it?
+
+Claude: I appreciate you bringing that up directly. Let me clarify what I'm here to do.
+
+My role right now is to understand your team's current situation - the challenges you're facing, how you work, and what problems need solving. I'm gathering information to help determine what the right solution might be.
+
+You're absolutely right that there's interest in a chatbot from executives. But before jumping to any specific solution - whether that's a chatbot or something else - I want to make sure I really understand the underlying problems. Sometimes the solution leadership envisions might be exactly right, and sometimes through discovery we find a different or complementary approach that better addresses the core issues.
+
+So when you think about everything we've discussed - the ALEX-Salesforce friction, the copy-paste errors, the time impact, the occasional pricing mistakes - what would an ideal solution look like from your perspective? What would actually make your team's lives easier?
+
+------------------------------------------------------------
+
+You: If we could just be able to look up a customer account, see all of the data related to that customer that we need, including product information, that would be HUGE! Even better would be if, when a case is created for that customer all of the relevant fields are populated on the case so we don't have to copy/paste anything. But, even if we were to fix this, the executives are pushing for a chatbot to replace the majority of my team, almost all of the Tier 1's. They want you to have this info so that you can build what's needed for the chatbot, not necessarily to improve our lives.
+
+Claude: Thank you for being so direct with me - that's really important context, and I appreciate your honesty.
+
+So there are really two things happening here: the operational pain your team is dealing with daily, and a strategic direction from executives to implement a chatbot that would potentially replace most of tier 1. Those are very different initiatives with very different implications.
+
+Let me ask you this: from your perspective, do you think a chatbot could actually handle the majority of what your tier 1 team does today? Given the complexity of looking up product information, triaging issues, and routing to the right teams - what percentage of your 300 daily tickets do you think could realistically be resolved by automation without human intervention?
+
+And separately, regardless of the chatbot decision, it sounds like fixing the ALEX-Salesforce integration would benefit whoever is handling these cases - whether that's your current team, a smaller team, or a chatbot. Is that fair?
+
+------------------------------------------------------------
+
+You: I do think that the chatbot could replace the majority of what Tier 1 one does, as long as there was an integration where it was able to have data from both Salesforce and ALEX. Without that, the chatbot can't function appropriately. So the ALEX integration is critical for the chatbot implementation in order to have maximum value. Otherwise, you would still need my team to do the manual copy/paste stuff. And if that integration is done my current team would benefit significantly.
+
+Claude: That's a really clear and practical assessment. The ALEX-Salesforce integration is foundational - it enables the chatbot strategy while also solving the immediate operational problems your team faces daily.
+
+Let me make sure I understand the chatbot vision from what you've heard. Would the chatbot be customer-facing - so customers interact with it directly to get answers - or would it be internal, helping your reps find information faster? Or maybe both?
+
+And when you say it could handle the majority of tier 1 work, are you thinking it would fully resolve those cases, or more that it would handle the initial information gathering and then hand off to a human when needed?
+
+------------------------------------------------------------
+
+You: The idea is that the chatbot or agent or whatever they are called nowdays, would completely replace a Tier 1 rep. It would be customer-facing, accessed from our website or Experience Cloud portal.
+
+Claude: Got it - so a fully customer-facing AI agent on the website and Experience Cloud portal that would handle what tier 1 does today: triage, look up product information, answer questions, and either resolve or route to tier 2 or other departments.
+
+For that to work effectively, the agent would need to:
+- Access customer account information in Salesforce
+- Pull product details from ALEX
+- Understand when to resolve versus when to escalate
+- Route cases to the appropriate queue or person
+
+Is that the right picture? And do you know if there are certain types of requests that executives expect would still always go to humans, or is the goal truly to automate everything tier 1 currently handles?
+
+------------------------------------------------------------
+
+You: That the right picture. We would retain a handful of Tier 1 supervisors that would manage the AI Agents but the agents would replace the current Tier 1 representatives.
+
+Claude: That makes sense - supervisors to oversee and manage the AI agents rather than a large team of reps.
+
+Given how critical this ALEX-Salesforce integration is to making the AI agent work, do you know if anyone has started exploring what that integration would look like technically? Or talked to the CTO's team about feasibility?
+
+I ask because you mentioned earlier that Product Development already has a Jira-ALEX integration working, and Salesforce connects to Jira somehow. It seems like there might be existing technical patterns or infrastructure that could be leveraged.
+
+Also, when you think about the types of questions customers ask in those 300 daily tickets - are there common patterns or categories? Like, is it mostly "what version am I on" and "are there known issues," or is there a wide variety of request types?
+
+------------------------------------------------------------
+
+You: I believe the IT team has been exploring integration between ALEX and Salesforce but that's something that team would have to give you more information about. I agree that it seems like we could get the information from Jira if Salesforce is already connected to it but I'm not technical! LOL As far as the types of questions, yes, they are pretty much the same types of questions or maybe not the same types of questions but around the same topics like Current Known Issues or Outages, Version, Product Compatibility with 3rd Parties, plus a lot of Account-related stuff.
+
+Claude: Ha! Fair enough - the technical details are definitely for the IT folks. But it's helpful to know they've already been exploring the ALEX-Salesforce integration.
+
+When you say "a lot of Account-related stuff" - what kinds of account questions are coming in? Are those things like billing questions, subscription changes, access issues? I'm trying to understand what falls into that category versus the product-related inquiries.
+
+And for those account-related questions, would those need to be routed to Account Managers or Finance, or are some of them things tier 1 can resolve today?
+
+------------------------------------------------------------
+
+You: Yes, about the account issues. It's all those types of things. And yes, most account-related questions would go to the Account Manager. If it's billing related it would go to Finance. For Access issues though, tier 1 would usually take care of those.
+
+Claude: Okay, so access issues stay with tier 1, but billing goes to Finance and other account stuff goes to Account Managers.
+
+When tier 1 handles access issues, do they need to look anything up in ALEX for those, or is that purely handled in Salesforce? I'm trying to understand which types of requests actually require that ALEX data versus which ones don't.
+
+And thinking about the AI agent replacing tier 1 - for those cases that need to be routed to Finance or Account Managers, would the expectation be that the agent does the same triage and routing that your team does now? Or would the vision be different somehow?
+
+------------------------------------------------------------
+
+You: Access issues are handled purely in Salesforce. It's always related to their Experience Cloud user account. For phase 1 the expectation would be to do what my team does now. Later phases might look to offload some of the more basic things that Account Managers and Finance handle but for now, just Tier 1.
+
+Claude: That's helpful - so phase 1 is focused on replacing tier 1 functionality, and future phases might expand into what other teams handle.
+
+Let me step back for a moment. We've covered a lot of ground - the current workflow challenges, the ALEX-Salesforce integration need, the AI agent vision, the teams involved. 
+
+Before we go deeper into specific pain points and requirements, is there anything else about how your team currently operates, or about the overall project goals, that I should understand? Anything we haven't touched on that feels important?
+
+------------------------------------------------------------
+
+You: I don't think so. The key thing is to improve our process so that the chatbot has everything it needs to be able to function correctly. But, I'm not sure exactly when the chatbot build project will kick off. I just know they will use this discovery information to drive some of the build requirements. In the meantime, we'll just focus on this as improving the process for Tier 1 and then that can easily transition to the chatbot build when it begins.
+
+Claude: That makes a lot of sense - focus on solving the core integration and process problems, which benefits your team now and sets the foundation for the AI agent later.
+
+Let me ask about timing and priorities from your perspective. You mentioned the executives are in a hurry for the chatbot. Do you have a sense of what timeline they're working toward? And from your team's standpoint, if you could fix one thing immediately to make the biggest difference, would it be getting ALEX product data into Salesforce, or is there something else that would have more impact?
+
+I want to make sure I understand what's most urgent versus what's important but can wait.
+
+------------------------------------------------------------
+
+You: The timeline for the chatbot, the last I heard, was to have it implemented by the end of the year. From my team's standpoint, the biggest thing that would help my team the most is the integration with ALEX.
+
+Claude: End of year for the AI agent - that's a pretty aggressive timeline, which explains the urgency.
+
+And you're clear that the ALEX integration is the highest priority for your team's immediate needs.
+
+Let me ask about success metrics. When this ALEX-Salesforce integration is in place - whether it's being used by your team or by the AI agent - how will you know it's working well? What would you be measuring or looking at to say "yes, this solved the problem"?
+
+Is it handle time reduction, fewer errors, rep satisfaction, something else?
+
+------------------------------------------------------------
+
+You: We would be looking primarily at handle time, how many were resolved with first contact, average case age, number of closed cases per rep, things like that. And for most of the metrics we would want to see it by case type and then for product cases by product type.
+
+Claude: Those are good, concrete metrics - handle time, first contact resolution, case age, cases per rep. And you want the ability to slice that data by case type and product type to understand where you're seeing improvements.
+
+When you say "first contact resolution" - does that mean cases that tier 1 resolves without escalating to tier 2 or routing to another department? And are you currently tracking that metric, or would that be something new you'd want to measure once the integration is in place?
+
+Also, for "average case age" - is that primarily an issue with cases that get routed to other departments and sit in their queues, or are cases aging within tier 1 as well?
+
+------------------------------------------------------------
+
+You: Yes, that is what first contact resolution is to us. And yes, we are currently tracking that metric but we don't have all of the product information reliably. Cases shouldn't really age in Tier 1 but it does happen on occassion. The aging is mostly for the product cases being handled by product development.
+
+Claude: So Product Development cases are where you see aging issues. That's interesting - are those cases sitting in their queue waiting to be picked up, or is it that the issues themselves just take longer to resolve because they're more complex?
+
+And you mentioned you're tracking first contact resolution now but don't have product information reliably - does that mean you're not always tagging cases with the right product, or is there some other data quality issue affecting that metric?
+
+------------------------------------------------------------
+
+You: The issues themselves usually take longer to resolve, due to complexity or the timeing of a scheduled update patch. Not having reliable product info is due to the copy/paste nature of how the information gets captured. It's inconsistent so we can't rely too heavily on it. We usally just best guess.
+
+Claude: So you're working with incomplete or inconsistent product data in Salesforce right now, which means your current metrics are somewhat limited in how much they can tell you about performance by product type. The integration would fix that by ensuring product information is captured consistently and accurately.
+
+That actually brings up a good question - when the ALEX data does get integrated into Salesforce, what specifically needs to be captured on the case record? Is it just those key fields you mentioned - current version, critical issues, update windows, lifecycle status - or is there other product information that should be documented?
+
+And should that information be captured automatically when a case is created, or at some other point in the workflow?
+
+------------------------------------------------------------
+
+You: Ideally, depending on the case type and/or the product type selected only the data relavent for that case type would be needed in the case. If that could be autopopulated that would be amazing!
+
+Claude: That would be smart - only pulling in the relevant ALEX data based on what type of case it is and which product is involved, rather than dumping everything onto every case.
+
+So if someone creates a case about a known issue, you'd want critical issues and maybe version info, but you might not need lifecycle status or update windows. Whereas a different case type might need different data points.
+
+Do you have a sense of what your main case types are, and which ALEX data would be relevant for each? Or is that something that would need to be mapped out as part of the solution design?
+
+And when you say "product type selected" - is that something the customer selects when they create the case, or does tier 1 categorize it after the fact?
+
+------------------------------------------------------------
+
+You: Just off the top of my head, our main case types related to products are: Critical Issues and Updates, New Bugs, UI/UX and Version. Sometimes the customer selects it because they know but most of the time Tier 1 is selecting it after triage.
+
+Claude: Got it - so Critical Issues and Updates, New Bugs, UI/UX, and Version are your main product-related case types. And tier 1 is usually the one categorizing after they've done initial triage.
+
+When tier 1 is doing that triage and categorization, are they currently looking up the product in ALEX first to help them determine the case type, or are they categorizing based on what the customer described and then going to ALEX to get the details?
+
+I'm trying to understand the order of operations in that workflow.
+
+------------------------------------------------------------
+
+You: Sometimes they can categorize it off of what the customer describes. It just depends.
+
+Claude: Fair enough - it varies based on how clear the customer's description is.
+
+Let me make sure I'm understanding the full picture of what needs to happen. A case comes in, tier 1 does triage, they categorize it by case type and identify the product, and at that point the relevant ALEX data should populate into the case automatically. Then they either resolve it, escalate to tier 2, or route to Finance, Product Dev, or an Account Manager.
+
+Is that the ideal workflow you're envisioning? And when cases get routed to those other teams, would they also benefit from having that ALEX data already populated in the case, or do they typically need different information?
+
+------------------------------------------------------------
+
+You: Yes, that's it. Ideally, we would do the same thing for Finance and Account Management cases where you would only need to worry about the specific product information that they cared about. Their case window might expose some additional data that they need. it would be really nice if when a case comes it for Tier 1 it only has basic fields on it that Tier 1 needs to do their job. Then, if a case gets routed, it opens up a section of fields that the new team needs to compelte their piece.
+
+Claude: That's a really thoughtful approach - progressive disclosure where each team only sees the fields relevant to their role, and additional sections open up as the case moves through different teams. That would keep things cleaner and more focused for everyone.
+
+So tier 1 would have their basic fields plus the relevant ALEX product data, and then when it routes to Finance, additional Finance-specific fields appear. Same for Account Managers and Product Development.
+
+Do Finance and Account Managers need different product information from ALEX than what tier 1 uses, or would they be working with the same data points - just potentially needing additional non-product fields specific to their functions?
+
+------------------------------------------------------------
+
+You: They should be working with the same data points. Product Development can access more information in Jira if they need it so I definitely wouldn't worry about them as far as having it in the case. They do very little, if anyting, in Salesforce. Finance and Account Management shouldn't need anything beyond what tier 1 includes.
+
+Claude: Perfect - so the ALEX product data that gets populated for tier 1 would be sufficient for Finance and Account Managers as well. Product Development works primarily in Jira and has what they need there.
+
+That actually simplifies things quite a bit. The focus is really on getting the right ALEX data into Salesforce cases based on case type and product, and then making sure the case layout adapts to show team-specific fields when it gets routed.
+
+Let me ask about the tier 2 team. You mentioned they handle outlier cases that don't get routed to other departments. Do they need access to the same ALEX product information as tier 1, or since they're dealing with more complex issues, do they need deeper or different product data?
+
+------------------------------------------------------------
+
+You: That's a good question. Tier 2 might need more product information but it's really hard to determine if they will or not. I think as long as they have quick and easy access to the additonal Product information from the case itself that would be great.
+
+Claude: So tier 2 should be able to access additional ALEX product details directly from the case if they need to go deeper - maybe a link or embedded view that lets them see the full product record without leaving Salesforce and hunting through ALEX tabs.
+
+That makes sense given they're dealing with more complex scenarios where the standard data points might not be enough.
+
+I think I have a pretty comprehensive understanding of your current situation and what you're looking to solve. Let me do a quick recap to make sure I haven't missed anything critical:
+
+**Current State:**
+- 50 tier 1 reps, 10 tier 2, handling ~300 cases/day
+- 90% require ALEX lookups for product data
+- Manual copy-paste creates errors, takes extra time (~2 min per case)
+- Cases get resolved, escalated to tier 2, or routed to Finance, Product Dev, or Account Managers
+- Quarterly pricing errors due to data entry mistakes
+
+**Desired State:**
+- ALEX product data auto-populated in Salesforce based on case type and product
+- Progressive case layouts showing team-specific fields
+- Foundation for future AI agent (end of year target)
+- Track improvements via handle time, first contact resolution, case age, cases per rep
+
+Does that capture it? Anything I'm missing or getting wrong?
+
+------------------------------------------------------------
+
+You: That looks correct to me!
+
+Claude: Excellent. I appreciate you being so thorough and candid throughout this conversation - especially about the AI agent context and the executive priorities. That's really valuable information.
+
+Before we wrap up this phase, I want to ask: who else should I be talking to for this discovery? 
+
+You mentioned the VP of Customer Success would be a key stakeholder, and the CTO or designate for the technical side. It also sounds like I should talk to someone from Product Development about the Jira-ALEX integration, and maybe someone from IT who's been exploring the ALEX-Salesforce integration work.
+
+Are there others - maybe someone from Finance or Account Management, or someone who manages ALEX itself - who would have important perspectives I should capture?
+
+------------------------------------------------------------
+
+You: I don't think it would hurt to talk to each one of the teams you mentioned, if they have the time.
+
+Claude: That makes sense - getting perspectives from all the teams involved would give a complete picture.
+
+Let me ask one more thing: as I talk to these other teams, are there specific questions or concerns from your perspective that you'd want me to explore with them? 
+
+For example, is there anything about how Finance or Account Managers work with cases that you're curious about, or questions about the technical feasibility of the integration that would be helpful to get answered?
+
+------------------------------------------------------------
+
+You: I think I would be interested in seeing the output of those conversations to see if they have any ideas that might benefit my team that I hadn't thought of.
+
+Claude: Absolutely - I'll make sure you get visibility into what comes out of those conversations. There might be some great ideas or approaches that could benefit everyone.
+
+Last question before we move forward: is there anything about the current process, the pain points, or the goals we've discussed that you want to clarify or emphasize? Anything you're worried might get lost or misunderstood as this moves forward?
+
+------------------------------------------------------------
+
+You: I can't think of anything.
+
+Claude: Perfect. I really appreciate your time and how open you've been about everything - the operational challenges, the strategic context with the AI agent, and the reality of what your team is dealing with day-to-day.
+
+I have a solid understanding of where things stand now. Next, I'd like to dig deeper into some of the specific requirements and constraints - things like data security, system limitations, user adoption considerations, and any technical or business constraints we need to work within.
+
+Does now work to continue into that, or would you prefer to schedule another time?
+
+------------------------------------------------------------
+
+You: Let's schedule another time. I can continue a little later this afternoon.
+
+Claude: Sounds good. Later this afternoon works well.
+
+Just to set expectations - when we reconvene, I'll be asking about things like:
+- Data security and compliance requirements
+- Any technical constraints or limitations with Salesforce or ALEX
+- Change management and user adoption considerations
+- Budget or timeline constraints
+- Any risks or concerns you foresee
+
+That way you can think about those topics beforehand if anything comes to mind.
+
+Thanks again for your time today. This was really helpful.
+
+------------------------------------------------------------
+

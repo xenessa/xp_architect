@@ -1,0 +1,68 @@
+============================================================
+PHASE 1 SUMMARY: The Basics
+============================================================
+
+# Discovery Phase Summary: Sales Cloud Implementation for Greek Tour Sales Company
+
+## Current State Overview & Core Challenges
+
+This small travel company selling customized Greek tours is operating with a fragmented technology ecosystem that's creating significant operational friction across their 20-person sales team. The fundamental problem is that customer information and sales activities are scattered across multiple disconnected systems—Outlook for communications and lead queues, spreadsheets for pipeline tracking (both a master SharePoint version and numerous personal copies), Word documents for quotes, SharePoint folders for customer files, and Excel templates for executive reporting. This fragmentation means the team lacks a single source of truth about their customers and pipeline, forcing salespeople to constantly context-switch between systems just to do their jobs.
+
+The impact of this scattered approach manifests in several critical ways: First, there's substantial business risk because deal context lives primarily in individual email threads and salespeople's heads, making it nearly impossible for someone to take over opportunities if a team member leaves or is unexpectedly unavailable. Second, the team experiences regular data quality issues—duplicate customer folders in SharePoint (because people don't search before creating new ones), duplicate lead assignments (multiple people claiming the same opportunity), and pipeline discrepancies caused by salespeople maintaining personal spreadsheet copies when working offline from mobile devices or satellite offices. Third, leadership is making decisions based on stale data since the manual Excel reporting process delivers yesterday's information every morning rather than providing real-time visibility.
+
+## Team Structure & Key Relationships
+
+The sales organization is structured around four regional team leads (East, West, North, South) who need visibility into their region's performance and the ability to coach their teams. The sales team operates more as relationship-driven field sellers than you might expect for this industry—they frequently meet customers in person at satellite offices and work from mobile devices with inconsistent WiFi access, making mobile-first Salesforce functionality essential rather than nice-to-have.
+
+From a cross-functional perspective, the sales team has three critical partnerships that need to be supported in the new system:
+
+**Marketing** receives leads through regional email addresses that feed into Outlook groups, where salespeople grab opportunities first-come-first-served (creating an uneven distribution problem where faster responders dominate). Marketing also runs promotional campaigns through temporary email groups and needs visibility into which deals resulted from which campaigns. Currently, this tracking happens through manual spreadsheet entries of the originating email address. Additionally, the team sends customers a questionnaire via email to capture travel interests beyond Greece, which Marketing uses to identify expansion opportunities—a completely manual process that Marketing would prefer to streamline.
+
+**Finance** provides quarterly price lists that salespeople work from, so easy access to current pricing within Salesforce will be important. Collaboration here is relatively straightforward compared to other departments.
+
+**Customer Support** needs advance visibility into what's been sold so they can prepare for effective service delivery. Once a booking finalizes, the customer hands off to an Account Manager in Customer Support who works from the booking details and only circles back to sales if additional context is needed. This represents a clean break in the process where sales involvement essentially ends.
+
+## Sales Process & Current Workflow
+
+The sales cycle is relatively quick—averaging two weeks though some deals extend to several months—and follows a clear progression: lead intake, needs discovery, quote creation, iteration, and booking finalization. When a lead arrives via the Outlook group system, salespeople self-select opportunities (the "free-for-all" approach), review the tour option requested in the initial email, then conduct discovery around preferences (group vs. intimate tours, budget, duration, vacation activity preferences, and other relevant factors). They create initial quotes in Word documents stored in customer folders on SharePoint, iterate based on feedback (creating multiple Word document versions), track quote status in the spreadsheet, and finalize the booking before handing off to Customer Support.
+
+The quote iteration process is particularly unwieldy—as customers request itinerary changes or budget adjustments, salespeople generate new Word document versions while updating only the status field in the spreadsheet, with no systematic tracking of what changed or why. Activity documentation is inconsistent and informal, living primarily in email threads with sporadic use of Outlook tasks and calendar events depending on individual salesperson habits.
+
+## Data & Reporting Requirements
+
+The current state of pipeline visibility is problematic for everyone involved. The master spreadsheet in SharePoint is supposed to be the single source of truth, but it becomes unreliable when salespeople work offline and maintain personal copies that may or may not sync back accurately. This creates what the user described as "a reporting nightmare" with data discrepancies that undermine confidence in pipeline accuracy.
+
+For executive reporting, someone manually extracts data from the master spreadsheet and feeds it into an Excel template containing pivot tables, formulas, and visualizations. Leadership wants to see products sold, average sales cycle length, win/loss ratios, and regional data (specifically where customers are coming from geographically to inform targeting decisions). There are additional metrics requested that weren't recalled during the conversation, but the core need is clear: leadership needs real-time access to accurate pipeline and performance data rather than daily snapshots that are already outdated.
+
+Win/loss tracking is currently minimal—deals are marked as lost with occasional brief notes about why, but there's no consistent practice around capturing loss reasons. This represents a missed opportunity to understand competitive losses, pricing issues, or other patterns that could inform strategy.
+
+## Technology Ecosystem & System Pain Points
+
+The complete current tech stack includes:
+- **Outlook**: Email, tasks, calendar events, and lead queue groups
+- **Spreadsheets**: Master tracker in SharePoint plus personal copies
+- **Word**: Quote document creation and versioning  
+- **SharePoint**: Customer folders and document storage
+- **Excel**: Executive reporting template
+
+The user identified their biggest pain point as "having to go back and forth between systems and not having a clear picture and understanding of our customer." This is the core problem driving the Salesforce implementation—the inability to deliver personalized service effectively when customer context is fragmented across disconnected tools, and the productivity drain of constantly hunting for information across multiple systems instead of focusing on actual selling activities.
+
+## Critical Considerations for Salesforce Design
+
+Several aspects of this discovery will be particularly important for the Solutions Architect to address:
+
+**Mobile accessibility is non-negotiable** given the field-based selling model and inconsistent WiFi at satellite offices. The offline challenges they experience with spreadsheets need to be solved, not replicated, in Salesforce Mobile.
+
+**Lead distribution and assignment** requires a systematic approach to replace the free-for-all model, ensuring equitable distribution while preventing the duplicate assignment issues they currently experience.
+
+**Document management and quote process** needs significant improvement—the SharePoint folder duplication problem and multi-version Word quote tracking suggest opportunities for Salesforce Files, potentially integrated with a quoting tool or at minimum a better versioning approach.
+
+**Marketing integration points** around lead source tracking, campaign attribution, and the travel interest questionnaire all represent opportunities to streamline manual processes while giving Marketing better data for expansion planning.
+
+**Regional hierarchy and visibility** must support the four-team-lead structure with appropriate role hierarchies, reporting views, and coaching capabilities.
+
+**Activity and interaction tracking** needs to become systematic and accessible so that deal context doesn't live exclusively in individual email threads and heads—enabling smooth coverage, transitions, and ultimately reducing business risk.
+
+The implementation scope covering Accounts, Contacts, Opportunities, Leads, Forecasts, and Tasks aligns well with these needs, though the conversation suggests additional considerations around document management, mobile optimization, lead routing, and cross-functional visibility that will be critical to solving the core problems driving this project.
+
+============================================================
