@@ -11,13 +11,12 @@ from app.routers import auth, projects, sessions
 
 
 # Auto-migrate: add first_dashboard_visit_at column if missing
+from sqlalchemy import text
+from app.database import engine
+
 try:
     with engine.connect() as conn:
-        conn.execute(
-            text(
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS first_dashboard_visit_at TIMESTAMP"
-            )
-        )
+        conn.execute(text('ALTER TABLE users ADD COLUMN IF NOT EXISTS first_dashboard_visit_at TIMESTAMP'))
         conn.commit()
     print("Migration check complete: first_dashboard_visit_at column ensured")
 except Exception as e:
