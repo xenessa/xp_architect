@@ -822,6 +822,32 @@ async def sa_verify_progress(browser, sa_email, sa_password="test123"):
     
     pause("Project detail showing stakeholder completion. Press Enter to finish...")
     
+    # Generate and view consolidated report
+    print_substep("Generating consolidated report...")
+    consolidated_btn = page.locator('button:has-text("Generate Consolidated Report"), button:has-text("Consolidated Report")')
+    
+    if await consolidated_btn.count() > 0:
+        await consolidated_btn.first.click()
+        
+        # Wait for report to generate (may take a while with AI)
+        await page.wait_for_timeout(15000)
+        
+        await page.screenshot(path="screenshots/sa_verify_06_consolidated_report_top.png")
+        
+        # Scroll to capture full report
+        await page.evaluate("window.scrollBy(0, 500)")
+        await page.wait_for_timeout(500)
+        await page.screenshot(path="screenshots/sa_verify_07_consolidated_report_mid.png")
+        
+        await page.evaluate("window.scrollBy(0, 500)")
+        await page.wait_for_timeout(500)
+        await page.screenshot(path="screenshots/sa_verify_08_consolidated_report_bottom.png")
+        
+        print("  ✓ Consolidated report captured")
+        pause("Consolidated report generated. Press Enter to finish...")
+    else:
+        print("  ⚠ No consolidated report button found")
+    
     # Clean up this context
     await context.close()
     

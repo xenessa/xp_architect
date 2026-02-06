@@ -17,8 +17,10 @@ from app.database import engine
 try:
     with engine.connect() as conn:
         conn.execute(text('ALTER TABLE users ADD COLUMN IF NOT EXISTS first_dashboard_visit_at TIMESTAMP'))
+        conn.execute(text('ALTER TABLE projects ADD COLUMN IF NOT EXISTS consolidated_report TEXT'))
+        conn.execute(text('ALTER TABLE projects ADD COLUMN IF NOT EXISTS consolidated_report_generated_at TIMESTAMP WITH TIME ZONE'))
         conn.commit()
-    print("Migration check complete: first_dashboard_visit_at column ensured")
+    print("Migration check complete")
 except Exception as e:
     print(f"Migration note: {e}")
 

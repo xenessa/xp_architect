@@ -73,6 +73,11 @@ export function getProjectProgress(projectId) {
   return api.get(`/api/projects/${projectId}/progress`);
 }
 
+export function getConsolidatedReport(projectId, regenerate = false) {
+  const params = regenerate ? { regenerate: 'true' } : {};
+  return api.get(`/api/projects/${projectId}/consolidated-report`, { params });
+}
+
 export function submitAssessment(responses) {
   return api.post('/api/session/assessment', { responses });
 }

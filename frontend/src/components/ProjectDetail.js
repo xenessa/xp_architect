@@ -10,6 +10,7 @@ import {
   deactivateStakeholder,
   deleteStakeholder,
 } from '../services/api';
+import ConsolidatedReport from './ConsolidatedReport';
 
 const PHASES = {
   1: { name: 'Open Discovery' },
@@ -353,6 +354,7 @@ function ProjectDetail() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState('');
   const [deleteConfirmUser, setDeleteConfirmUser] = useState(null);
+  const [consolidatedReportOpen, setConsolidatedReportOpen] = useState(false);
 
   const loadProject = async () => {
     if (!id) return;
@@ -631,7 +633,27 @@ function ProjectDetail() {
         {error && <div style={styles.error}>{error}</div>}
 
         <section style={styles.section}>
-          <h2 style={styles.sectionTitle}>Progress</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+            <h2 style={{ ...styles.sectionTitle, margin: 0 }}>Progress</h2>
+            {completed >= 1 && (
+              <button
+                type="button"
+                style={{
+                  padding: '10px 18px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#059669',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+                onClick={() => setConsolidatedReportOpen(true)}
+              >
+                Generate Consolidated Report
+              </button>
+            )}
+          </div>
           <div style={styles.progressSummary}>
             <p style={styles.progressText}>
               {completed}/{total} completed, {inProgress} in progress, {notStarted} not started
@@ -1078,6 +1100,12 @@ function ProjectDetail() {
             </div>
           </div>
         </div>
+      )}
+      {consolidatedReportOpen && (
+        <ConsolidatedReport
+          projectId={id}
+          onClose={() => setConsolidatedReportOpen(false)}
+        />
       )}
       {deleteConfirmUser && (
         <div

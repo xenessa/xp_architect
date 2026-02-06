@@ -1,8 +1,9 @@
 """Project management routes for Solution Architects. All routes require SA role."""
 
+from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -11,6 +12,7 @@ from app.models.project import Project, ProjectUser
 from app.models.session import DiscoverySession, SessionStatus
 from app.models.user import User
 from app.schemas.project import (
+    ConsolidatedReportResponse,
     ProjectCreate,
     ProjectDetailResponse,
     ProjectListResponse,
@@ -31,7 +33,7 @@ from app.services.project import (
     project_user_to_response,
     update_project,
 )
-from app.services.discovery import generate_final_report
+from app.services.discovery import generate_consolidated_report, generate_final_report
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -282,6 +284,90 @@ def get_stakeholder_discovery_results(
     return StakeholderDiscoveryResultsResponse(
         phase_summaries=phase_summaries,
         final_report=final_report,
+    )
+
+
+@router.get(
+    "/{project_id}/consolidated-report",
+    response_model=ConsolidatedReportResponse,
+)
+def get_consolidated_report(
+    project_id: UUID,
+    regenerate: bool = Query(False, description="Force regenerate the report"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ConsolidatedReportResponse:
+    """Get the consolidated discovery report for a project.
+
+    Fetches all completed discovery sessions, synthesizes findings via Claude,
+    and returns the report. Caches the result in the database unless regenerate=True.
+    """
+    project = get_project(db, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    # Gather completed sessions
+    stakeholder_data: list[dict] = []
+    for pu in project.project_users:
+        if not pu.session or pu.session.status != SessionStatus.COMPLETED:
+            continue
+        session = pu.session
+        name = pu.user.name if pu.user else pu.invited_name or ""
+        email = pu.user.email if pu.user else pu.invited_email or ""
+        raw_summaries = session.phase_summaries or {}
+        phase_summaries: dict[str, str] = {}
+        for k, v in raw_summaries.items():
+            if str(k).endswith("_pending"):
+                continue
+            if isinstance(v, str):
+                phase_summaries[str(k)] = v
+        final_report: str | None = None
+        if phase_summaries:
+            final_report = generate_final_report(
+                phase_summaries,
+                project.scope,
+                session.flagged_items or [],
+            )
+        stakeholder_data.append({
+            "name": name or email or "Unknown",
+            "email": email,
+            "phase_summaries": phase_summaries,
+            "final_report": final_report or "",
+        })
+
+    if not stakeholder_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one stakeholder must have completed discovery to generate the consolidated report.",
+        )
+
+    # Use cached report if available and not regenerating
+    if not regenerate and project.consolidated_report and project.consolidated_report_generated_at:
+        return ConsolidatedReportResponse(
+            report_content=project.consolidated_report,
+            generated_at=project.consolidated_report_generated_at,
+            stakeholder_count=len(stakeholder_data),
+        )
+
+    # Generate and store
+    report_content = generate_consolidated_report(project.scope, stakeholder_data)
+    project.consolidated_report = report_content
+    project.consolidated_report_generated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(project)
+
+    return ConsolidatedReportResponse(
+        report_content=report_content,
+        generated_at=project.consolidated_report_generated_at,
+        stakeholder_count=len(stakeholder_data),
     )
 
 

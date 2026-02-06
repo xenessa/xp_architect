@@ -461,6 +461,96 @@ Format this as a clear, professional document. Use bullet points and clear headi
         return "Error generating report."
 
 
+def generate_consolidated_report(
+    scope: str,
+    stakeholder_data: list[dict[str, Any]],
+) -> str:
+    """Generate a consolidated discovery report synthesizing findings from all stakeholders.
+
+    stakeholder_data: list of dicts with keys: name, email, phase_summaries (dict), final_report (str)
+    """
+    if not stakeholder_data:
+        return "No stakeholder data available for consolidation."
+
+    # Build per-stakeholder content blocks
+    stakeholder_blocks: list[str] = []
+    for idx, s in enumerate(stakeholder_data, 1):
+        name = s.get("name") or s.get("email") or f"Stakeholder {idx}"
+        email = s.get("email") or ""
+        phase_summaries = s.get("phase_summaries") or {}
+        final_report = s.get("final_report") or ""
+
+        block_lines = [f"=== STAKEHOLDER: {name} ({email}) ==="]
+        if phase_summaries:
+            phase_keys = [k for k in phase_summaries.keys() if str(k).isdigit()]
+            for pk in sorted(phase_keys, key=int):
+                block_lines.append(f"\nPhase {pk}:")
+                block_lines.append(phase_summaries.get(pk, ""))
+        if final_report:
+            block_lines.append("\n--- Final Report ---")
+            block_lines.append(final_report)
+        stakeholder_blocks.append("\n".join(block_lines))
+
+    all_content = "\n\n".join(stakeholder_blocks)
+
+    prompt = f"""You are a Solution Architect synthesizing discovery interviews from multiple stakeholders into ONE consolidated report.
+
+Project Scope:
+{scope}
+
+Below are the phase summaries and final reports from each stakeholder interview. Each stakeholder's data is clearly labeled.
+
+{all_content}
+
+Create a consolidated discovery report with the following structure. Be specific and cite which stakeholder(s) mentioned each point where relevant.
+
+## Executive Summary
+- Project overview
+- Number of stakeholders interviewed
+- Key themes identified
+
+## Current State (synthesized from all stakeholders)
+- Team structure & roles (who said what)
+- Systems & tools in use
+- Current processes
+
+## Pain Points & Challenges
+- Common pain points (mentioned by multiple stakeholders)
+- Role-specific pain points
+- Priority ranking based on frequency/severity
+
+## Crossovers & Redundancies
+- Where stakeholders described the same processes
+- Where different teams touch the same systems
+- Opportunities for consolidation
+
+## Conflicting Information
+- Where stakeholders disagreed or had different perspectives
+- Items needing clarification
+
+## Success Criteria (synthesized)
+- Common goals across stakeholders
+- Role-specific success metrics
+- Must-haves vs nice-to-haves
+
+## Recommended Requirements
+- Prioritized list based on stakeholder input
+- Quick wins vs long-term initiatives
+
+Format as a clear, professional document with markdown headings and bullet points. Be concise but comprehensive."""
+
+    try:
+        client = _get_client()
+        response = client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=8192,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.content[0].text
+    except Exception:
+        return "Error generating consolidated report."
+
+
 def generate_phase_break_offer_message(
     phase_num: int,
     approved_summary: str,

@@ -78,6 +78,14 @@ class Project(Base):
         default=datetime.utcnow,
         nullable=False,
     )
+    consolidated_report: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    consolidated_report_generated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     # Relationships
     created_by_user: Mapped["User"] = relationship(

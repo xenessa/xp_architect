@@ -104,3 +104,11 @@ class StakeholderDiscoveryResultsResponse(BaseModel):
 
     phase_summaries: dict[str, str]
     final_report: str | None = None
+
+
+class ConsolidatedReportResponse(BaseModel):
+    """Consolidated discovery report synthesizing findings from all stakeholders."""
+
+    report_content: str
+    generated_at: datetime
+    stakeholder_count: int
