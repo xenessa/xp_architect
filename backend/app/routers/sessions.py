@@ -37,12 +37,15 @@ router = APIRouter(prefix="/api/session", tags=["sessions"])
 
 
 def _get_or_create_active_session(db: Session, current_user: User) -> tuple[DiscoverySession, ProjectUser]:
-    """Find user's ACTIVE ProjectUser, get or create DiscoverySession. Returns (session, project_user). Raises 404 if no active project."""
+    """Find user's ACTIVE or COMPLETED ProjectUser, get or create DiscoverySession.
+
+    Includes COMPLETED so stakeholders can view their final report after discovery.
+    Returns (session, project_user). Raises 404 if no project assignment."""
     project_user = (
         db.query(ProjectUser)
         .filter(
             ProjectUser.user_id == current_user.id,
-            ProjectUser.status == ProjectUserStatus.ACTIVE,
+            ProjectUser.status.in_([ProjectUserStatus.ACTIVE, ProjectUserStatus.COMPLETED]),
         )
         .options(joinedload(ProjectUser.project), joinedload(ProjectUser.session))
         .first()
@@ -50,7 +53,7 @@ def _get_or_create_active_session(db: Session, current_user: User) -> tuple[Disc
     if not project_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active project assignment",
+            detail="No project assignment found",
         )
     if not project_user.project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")

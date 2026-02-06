@@ -257,6 +257,12 @@ def get_stakeholder_discovery_results(
             project_user = pu
             break
 
+    print(
+        f"[projects.get_stakeholder_discovery_results] project_id={project_id} user_id={user_id} "
+        f"project_user={'found' if project_user else 'NOT FOUND'} "
+        f"project_users_count={len(project.project_users)}"
+    )
+
     if not project_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -265,6 +271,7 @@ def get_stakeholder_discovery_results(
 
     session: DiscoverySession | None = project_user.session
     if not session:
+        print("[projects.get_stakeholder_discovery_results] No session for project_user")
         return StakeholderDiscoveryResultsResponse(phase_summaries={}, final_report=None)
 
     # Only include approved (non-pending) summaries
@@ -281,6 +288,10 @@ def get_stakeholder_discovery_results(
         scope = project.scope
         final_report = generate_final_report(phase_summaries, scope, session.flagged_items or [])
 
+    print(
+        f"[projects.get_stakeholder_discovery_results] session.status={session.status.value} "
+        f"phase_summaries_keys={list(phase_summaries.keys())} has_final_report={final_report is not None}"
+    )
     return StakeholderDiscoveryResultsResponse(
         phase_summaries=phase_summaries,
         final_report=final_report,

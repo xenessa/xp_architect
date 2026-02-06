@@ -538,6 +538,12 @@ function ProjectDetail() {
     setResultsLoading(true);
     try {
       const res = await getStakeholderDiscoveryResults(id, user.user_id);
+      console.log('[ProjectDetail] Discovery results received:', {
+        projectId: id,
+        userId: user.user_id,
+        phaseSummaryKeys: res.data?.phase_summaries ? Object.keys(res.data.phase_summaries) : [],
+        hasFinalReport: !!res.data?.final_report,
+      });
       setResultsData(res.data);
     } catch (err) {
       const detail = err.response?.data?.detail;
@@ -1030,7 +1036,8 @@ function ProjectDetail() {
                     const key = String(phaseNum);
                     const summary = resultsData.phase_summaries?.[key];
                     if (!summary) return null;
-                    const phase = PHASES[phaseNum] || `Phase ${phaseNum}`;
+                    const phase = PHASES[phaseNum] || { name: `Phase ${phaseNum}` };
+                    const phaseName = typeof phase === 'object' ? phase.name : phase;
                     return (
                       <details key={key} style={{ marginBottom: 12 }}>
                         <summary
@@ -1042,7 +1049,7 @@ function ProjectDetail() {
                             padding: '6px 0',
                           }}
                         >
-                          Phase {phaseNum} – {phase}
+                          Phase {phaseNum} – {phaseName}
                         </summary>
                         <div
                           style={{
@@ -1090,11 +1097,13 @@ function ProjectDetail() {
                       </div>
                     </details>
                   )}
-                  {!resultsData.final_report && !resultsData.phase_summaries && !resultsLoading && (
-                    <div style={{ fontSize: 14, color: '#6b7280' }}>
-                      No discovery results are available yet for this stakeholder.
-                    </div>
-                  )}
+                  {!resultsData.final_report &&
+                    (!resultsData.phase_summaries || Object.keys(resultsData.phase_summaries).length === 0) &&
+                    !resultsLoading && (
+                      <div style={{ fontSize: 14, color: '#6b7280' }}>
+                        No discovery results are available yet for this stakeholder.
+                      </div>
+                    )}
                 </>
               )}
             </div>
