@@ -243,6 +243,12 @@ def post_message(
         session.all_messages = all_messages
         db.commit()
         db.refresh(session)
+
+        # Debug logging: phase intro sent explicitly via BEGIN_PHASE
+        print(
+            f"[sessions.post_message] Phase intro sent via BEGIN_PHASE for phase {phase_num}. "
+            f"phase_complete_suggested={phase_complete_suggested}"
+        )
         return SessionMessageResponse(
             assistant_message=visible_message,
             phase_completed=False,
@@ -291,6 +297,11 @@ def post_message(
         db.commit()
         db.refresh(session)
         summary_message = "Summary generated. Please approve or request changes via POST /api/session/approve-summary."
+        # Debug logging: phase summary generated and pending approval
+        print(
+            f"[sessions.post_message] Phase summary generated for phase {session.current_phase}; "
+            f"pending_key={session.current_phase}_pending"
+        )
         return SessionMessageResponse(
             assistant_message=summary_message,
             phase_completed=True,
@@ -337,6 +348,16 @@ def post_message(
     db.commit()
     db.refresh(session)
 
+    # Debug logging: regular assistant reply (may include phase-complete suggestion)
+    print(
+        "[sessions.post_message] Assistant reply sent.",
+        {
+            "phase": session.current_phase,
+            "user_content": user_content,
+            "phase_complete_suggested": phase_complete_suggested,
+        },
+    )
+
     return SessionMessageResponse(
         assistant_message=visible_message,
         phase_completed=False,
@@ -382,6 +403,16 @@ def post_approve_summary(
         all_messages = list(session.all_messages or [])
         all_messages.append({"role": "assistant", "content": break_message})
         session.all_messages = all_messages
+
+        # Debug logging: break-offer message sent after summary approval
+        print(
+            "[sessions.post_approve_summary] Break-offer message sent.",
+            {
+                "phase_num": phase_num,
+                "next_phase_num": next_phase_num,
+                "status_before": session.status.value,
+            },
+        )
         if phase_num >= 4:
             session.status = SessionStatus.COMPLETED
             session.completed_at = datetime.now(timezone.utc)
