@@ -320,7 +320,16 @@ def post_message(
         session.flagged_items = flagged
 
     marker = "[PHASE_COMPLETE]"
-    phase_complete_suggested = marker in assistant_message
+    hint_phrases = [
+        "generate a summary",
+        "ready to move on",
+        "let me generate a summary",
+        "let me create a summary",
+    ]
+    lower_msg = assistant_message.lower()
+    phase_complete_suggested = marker in assistant_message or any(
+        phrase in lower_msg for phrase in hint_phrases
+    )
     visible_message = assistant_message.replace(marker, "").strip()
 
     all_messages.append({"role": "assistant", "content": visible_message})

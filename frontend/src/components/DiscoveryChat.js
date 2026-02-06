@@ -476,7 +476,7 @@ function DiscoveryChat() {
   const [loadingReport, setLoadingReport] = useState(false);
   const [showEndPhaseConfirm, setShowEndPhaseConfirm] = useState(false);
   const [toolbarHover, setToolbarHover] = useState(null);
-  const [waitingToBeginPhase, setWaitingToBeginPhase] = useState(false);
+  const [awaitingPhaseStart, setAwaitingPhaseStart] = useState(false);
   const chatEndRef = useRef(null);
   const chatAreaRef = useRef(null);
   const hasInitializedRef = useRef(false);
@@ -637,6 +637,7 @@ function DiscoveryChat() {
             ...prev,
             { type: 'phase_complete', phase: prevPhase },
           ]);
+          setAwaitingPhaseStart(true);
         }
       } else {
         setSummaryForApproval({
@@ -680,7 +681,7 @@ function DiscoveryChat() {
       const { assistant_message } = res.data;
       setMessages((prev) => [...prev, { role: 'assistant', content: assistant_message }]);
       await loadSession();
-      setWaitingToBeginPhase(false);
+      setAwaitingPhaseStart(false);
     } catch (err) {
       const detail = err.response?.data?.detail;
       setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to start next phase.');
@@ -722,33 +723,12 @@ function DiscoveryChat() {
     }
   };
 
-  // Track whether we're waiting for the user to explicitly begin the current phase (2-4)
+  // Reset awaitingPhaseStart when session resets or completes
   useEffect(() => {
-    if (!session) {
-      setWaitingToBeginPhase(false);
-      return;
+    if (!session || session.status === 'COMPLETED') {
+      setAwaitingPhaseStart(false);
     }
-    if (session.status !== 'IN_PROGRESS' || session.current_phase <= 1) {
-      setWaitingToBeginPhase(false);
-      return;
-    }
-    if (!messages || messages.length === 0) {
-      setWaitingToBeginPhase(true);
-      return;
-    }
-    const last = messages[messages.length - 1];
-    if (
-      last &&
-      last.role === 'assistant' &&
-      typeof last.content === 'string' &&
-      last.content.includes('Phase') &&
-      last.content.includes('complete')
-    ) {
-      setWaitingToBeginPhase(true);
-    } else {
-      setWaitingToBeginPhase(false);
-    }
-  }, [session, messages]);
+  }, [session]);
 
   if (loading) {
     return <div style={styles.loadingPage}>Loading session…</div>;
@@ -824,11 +804,11 @@ function DiscoveryChat() {
                   ...styles.toolbarBtnPause,
                   ...(toolbarHover === 'pause' ? { background: '#e2e8f0', borderColor: '#94a3b8' } : {}),
                 }}
-                onClick={waitingToBeginPhase ? handleBeginPhaseClick : handlePauseSession}
+                onClick={awaitingPhaseStart ? handleBeginPhaseClick : handlePauseSession}
                 onMouseEnter={() => setToolbarHover('pause')}
                 onMouseLeave={() => setToolbarHover(null)}
               >
-                {waitingToBeginPhase ? 'Begin Phase' : 'Pause Session'}
+                {awaitingPhaseStart ? 'Begin Phase' : 'Pause Session'}
               </button>
               {isDemoMode && (
                 <button
