@@ -8,6 +8,13 @@ import {
   getStakeholderDiscoveryResults,
 } from '../services/api';
 
+const PHASES = {
+  1: { name: 'Open Discovery' },
+  2: { name: 'Targeted Follow-ups' },
+  3: { name: 'Validation & Clarification' },
+  4: { name: 'Future State & Priorities' },
+};
+
 const styles = {
   page: {
     minHeight: '100vh',

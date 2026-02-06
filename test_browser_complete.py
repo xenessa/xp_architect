@@ -803,6 +803,23 @@ async def sa_verify_progress(browser, sa_email, sa_password="test123"):
     await page.screenshot(path="screenshots/sa_verify_03_project_detail_bottom.png")
     print("  ✓ Project detail captured")
     
+    # View stakeholder discovery results (new feature)
+    print_substep("Viewing stakeholder discovery results...")
+    view_results_btn = page.locator('button:has-text("View Results"), button:has-text("View Report")')
+    if await view_results_btn.count() > 0:
+        await view_results_btn.first.click()
+        await page.wait_for_timeout(2000)
+        await page.screenshot(path="screenshots/sa_verify_04_discovery_results.png")
+        
+        # Scroll to see full report
+        await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        await page.wait_for_timeout(500)
+        await page.screenshot(path="screenshots/sa_verify_05_discovery_results_bottom.png")
+        
+        print("  ✓ Discovery results captured")
+    else:
+        print("  ⚠ No 'View Results' button found")
+    
     pause("Project detail showing stakeholder completion. Press Enter to finish...")
     
     # Clean up this context
