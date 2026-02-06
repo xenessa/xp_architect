@@ -49,6 +49,18 @@ export function getStakeholderDiscoveryResults(projectId, userId) {
   return api.get(`/api/projects/${projectId}/stakeholders/${userId}/discovery-results`);
 }
 
+export function updateProject(projectId, data) {
+  return api.put(`/api/projects/${projectId}`, data);
+}
+
+export function deactivateStakeholder(projectId, userId) {
+  return api.put(`/api/projects/${projectId}/stakeholders/${userId}/deactivate`);
+}
+
+export function deleteStakeholder(projectId, userId) {
+  return api.delete(`/api/projects/${projectId}/stakeholders/${userId}`);
+}
+
 export function addUserToProject(projectId, email, name) {
   return api.post(`/api/projects/${projectId}/users`, { email, name });
 }

@@ -6,6 +6,9 @@ import {
   addUserToProject,
   activateProjectUser,
   getStakeholderDiscoveryResults,
+  updateProject,
+  deactivateStakeholder,
+  deleteStakeholder,
 } from '../services/api';
 
 const PHASES = {
@@ -154,6 +157,10 @@ const styles = {
     background: '#dbeafe',
     color: '#1d4ed8',
   },
+  badgeInactive: {
+    background: '#e5e7eb',
+    color: '#6b7280',
+  },
   badgeCompleted: {
     background: '#d1fae5',
     color: '#047857',
@@ -247,6 +254,7 @@ const styles = {
 const STATUS_BADGE_STYLES = {
   INVITED: { ...styles.badge, ...styles.badgeInvited },
   ACTIVE: { ...styles.badge, ...styles.badgeActive },
+  INACTIVE: { ...styles.badge, ...styles.badgeInactive },
   COMPLETED: { ...styles.badge, ...styles.badgeCompleted },
 };
 
@@ -335,6 +343,16 @@ function ProjectDetail() {
   const [resultsData, setResultsData] = useState(null);
   const [resultsLoading, setResultsLoading] = useState(false);
   const [resultsError, setResultsError] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    scope: '',
+    start_date: '',
+    end_date: '',
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState(null);
 
   const loadProject = async () => {
     if (!id) return;
@@ -419,6 +437,97 @@ function ProjectDetail() {
     }
   };
 
+  const openEditModal = () => {
+    if (!project) return;
+    setEditForm({
+      name: project.name || '',
+      scope: project.scope || '',
+      start_date: project.start_date || '',
+      end_date: project.end_date || '',
+    });
+    setEditError('');
+    setEditOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setEditOpen(false);
+    setEditError('');
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!id) return;
+    setEditError('');
+    const { name, scope, start_date, end_date } = editForm;
+    if (!name.trim()) {
+      setEditError('Name is required.');
+      return;
+    }
+    if (!scope.trim()) {
+      setEditError('Scope is required.');
+      return;
+    }
+    if (!start_date || !end_date) {
+      setEditError('Start and end date are required.');
+      return;
+    }
+    if (new Date(end_date) < new Date(start_date)) {
+      setEditError('End date must be on or after start date.');
+      return;
+    }
+    setEditSubmitting(true);
+    try {
+      await updateProject(id, {
+        name: name.trim(),
+        scope: scope.trim(),
+        start_date,
+        end_date,
+      });
+      await loadProject();
+      closeEditModal();
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setEditError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to update project.');
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const handleDeactivate = async (user) => {
+    if (!id || !user.user_id) return;
+    try {
+      await deactivateStakeholder(id, user.user_id);
+      await loadProject();
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to deactivate stakeholder.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id || !deleteConfirmUser?.user_id) return;
+    try {
+      await deleteStakeholder(id, deleteConfirmUser.user_id);
+      setDeleteConfirmUser(null);
+      await loadProject();
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to delete stakeholder.');
+    }
+  };
+
+  const openDeleteConfirm = (user) => {
+    setDeleteConfirmUser(user);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmUser(null);
+  };
+
   const handleViewResults = async (user) => {
     if (!id || !user.user_id) return;
     setResultsUser(user);
@@ -489,7 +598,25 @@ function ProjectDetail() {
           <button type="button" style={styles.backBtn} onClick={handleBack}>
             ← Back to Dashboard
           </button>
-          <h1 style={styles.projectName}>{project.name}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <h1 style={styles.projectName}>{project.name}</h1>
+            <button
+              type="button"
+              style={{
+                padding: '6px 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                borderRadius: 6,
+                border: '1px solid #d1d5db',
+                background: '#ffffff',
+                color: '#374151',
+                cursor: 'pointer',
+              }}
+              onClick={openEditModal}
+            >
+              Edit Project
+            </button>
+          </div>
           {project.scope && <p style={styles.scope}>{project.scope}</p>}
           {project.instructions && (
             <p style={styles.instructions}>{project.instructions}</p>
@@ -641,6 +768,168 @@ function ProjectDetail() {
           {addError && <div style={{ ...styles.error, marginTop: 12 }}>{addError}</div>}
         </section>
       </main>
+      {editOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15,23,42,0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            zIndex: 1000,
+          }}
+          onClick={closeEditModal}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              boxShadow: '0 20px 60px rgba(15,23,42,0.4)',
+              maxWidth: 600,
+              width: '100%',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: '#111827' }}>
+                Edit Project
+              </h3>
+              <button
+                type="button"
+                onClick={closeEditModal}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: 22,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  color: '#9ca3af',
+                }}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit}>
+              <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <label style={styles.label} htmlFor="edit-name">
+                    Name
+                  </label>
+                  <input
+                    id="edit-name"
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => handleEditChange('name', e.target.value)}
+                    style={styles.input}
+                    disabled={editSubmitting}
+                  />
+                </div>
+                <div>
+                  <label style={styles.label} htmlFor="edit-scope">
+                    Scope
+                  </label>
+                  <textarea
+                    id="edit-scope"
+                    value={editForm.scope}
+                    onChange={(e) => handleEditChange('scope', e.target.value)}
+                    style={{
+                      ...styles.input,
+                      minHeight: 80,
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                    }}
+                    disabled={editSubmitting}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1 1 160px' }}>
+                    <label style={styles.label} htmlFor="edit-start">
+                      Start Date
+                    </label>
+                    <input
+                      id="edit-start"
+                      type="date"
+                      value={editForm.start_date}
+                      onChange={(e) => handleEditChange('start_date', e.target.value)}
+                      style={styles.input}
+                      disabled={editSubmitting}
+                    />
+                  </div>
+                  <div style={{ flex: '1 1 160px' }}>
+                    <label style={styles.label} htmlFor="edit-end">
+                      End Date
+                    </label>
+                    <input
+                      id="edit-end"
+                      type="date"
+                      value={editForm.end_date}
+                      onChange={(e) => handleEditChange('end_date', e.target.value)}
+                      style={styles.input}
+                      disabled={editSubmitting}
+                    />
+                  </div>
+                </div>
+                {editError && <div style={styles.error}>{editError}</div>}
+              </div>
+              <div
+                style={{
+                  padding: '16px 20px',
+                  borderTop: '1px solid #e5e7eb',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: 8,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  style={{
+                    padding: '8px 14px',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    borderRadius: 6,
+                    border: '1px solid #d1d5db',
+                    background: '#ffffff',
+                    color: '#374151',
+                    cursor: 'pointer',
+                  }}
+                  disabled={editSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderRadius: 6,
+                    border: 'none',
+                    background: '#2563eb',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    opacity: editSubmitting ? 0.7 : 1,
+                  }}
+                  disabled={editSubmitting}
+                >
+                  {editSubmitting ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {resultsUser && (
         <div
           style={{
@@ -786,6 +1075,76 @@ function ProjectDetail() {
                   )}
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {deleteConfirmUser && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15,23,42,0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            zIndex: 1000,
+          }}
+          onClick={closeDeleteConfirm}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              boxShadow: '0 20px 60px rgba(15,23,42,0.4)',
+              maxWidth: 480,
+              width: '100%',
+              padding: 20,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 600, color: '#111827' }}>
+              Remove Stakeholder?
+            </h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: 14, color: '#4b5563', lineHeight: 1.5 }}>
+              Are you sure you want to remove {deleteConfirmUser.name || deleteConfirmUser.email} from
+              this project? This will remove their project assignment and{' '}
+              <strong>all associated discovery data</strong>.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                type="button"
+                onClick={closeDeleteConfirm}
+                style={{
+                  padding: '8px 14px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  borderRadius: 6,
+                  border: '1px solid #d1d5db',
+                  background: '#ffffff',
+                  color: '#374151',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  borderRadius: 6,
+                  border: 'none',
+                  background: '#b91c1c',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                Yes, Remove
+              </button>
             </div>
           </div>
         </div>

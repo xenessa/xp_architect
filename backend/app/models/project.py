@@ -30,6 +30,7 @@ class ProjectUserStatus(str, enum.Enum):
 
     INVITED = "INVITED"
     ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
     COMPLETED = "COMPLETED"
 
 

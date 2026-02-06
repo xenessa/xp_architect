@@ -283,3 +283,83 @@ def get_stakeholder_discovery_results(
         phase_summaries=phase_summaries,
         final_report=final_report,
     )
+
+
+@router.put("/{project_id}/stakeholders/{user_id}/deactivate", response_model=ProjectUserResponse)
+def deactivate_stakeholder(
+    project_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectUserResponse:
+    """Set a stakeholder's project participation status to INACTIVE."""
+    project = get_project(db, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    project_user = (
+        db.query(ProjectUser)
+        .filter(ProjectUser.project_id == project_id, ProjectUser.user_id == user_id)
+        .first()
+    )
+    if not project_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stakeholder not found for this project",
+        )
+
+    project_user.status = ProjectUserStatus.INACTIVE
+    db.commit()
+    db.refresh(project_user)
+    return project_user_to_response(project_user)
+
+
+@router.delete("/{project_id}/stakeholders/{user_id}", response_model=ProjectUserResponse)
+def delete_stakeholder(
+    project_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> ProjectUserResponse:
+    """Remove a stakeholder from the project. Do not allow deleting completed stakeholders."""
+    project = get_project(db, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    project_user = (
+        db.query(ProjectUser)
+        .filter(ProjectUser.project_id == project_id, ProjectUser.user_id == user_id)
+        .first()
+    )
+    if not project_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stakeholder not found for this project",
+        )
+
+    if project_user.status == ProjectUserStatus.COMPLETED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete a stakeholder who has completed discovery. Deactivate them instead.",
+        )
+
+    response = project_user_to_response(project_user)
+    db.delete(project_user)
+    db.commit()
+    return response
