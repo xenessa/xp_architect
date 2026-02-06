@@ -274,7 +274,7 @@ def get_stakeholder_discovery_results(
         print("[projects.get_stakeholder_discovery_results] No session for project_user")
         return StakeholderDiscoveryResultsResponse(phase_summaries={}, final_report=None)
 
-    # Only include approved (non-pending) summaries
+    # Extract approved (non-pending) phase summaries from stored data
     raw_summaries = session.phase_summaries or {}
     phase_summaries: dict[str, str] = {}
     for k, v in raw_summaries.items():
@@ -282,20 +282,31 @@ def get_stakeholder_discovery_results(
             continue
         if isinstance(v, str):
             phase_summaries[str(k)] = v
+        elif isinstance(v, dict) and isinstance(v.get("content"), str):
+            phase_summaries[str(k)] = v["content"]
 
+    # Generate final report on-the-fly (not stored in DB)
     final_report: str | None = None
     if session.status == SessionStatus.COMPLETED and phase_summaries:
-        scope = project.scope
-        final_report = generate_final_report(phase_summaries, scope, session.flagged_items or [])
+        try:
+            scope = project.scope
+            final_report = generate_final_report(
+                phase_summaries, scope, session.flagged_items or []
+            )
+        except Exception as e:
+            print(f"[projects.get_stakeholder_discovery_results] generate_final_report error: {e}")
+            final_report = None
 
-    print(
-        f"[projects.get_stakeholder_discovery_results] session.status={session.status.value} "
-        f"phase_summaries_keys={list(phase_summaries.keys())} has_final_report={final_report is not None}"
-    )
-    return StakeholderDiscoveryResultsResponse(
+    response = StakeholderDiscoveryResultsResponse(
         phase_summaries=phase_summaries,
         final_report=final_report,
     )
+    print(
+        f"[projects.get_stakeholder_discovery_results] session.status={session.status.value} "
+        f"phase_summaries_keys={list(phase_summaries.keys())} has_final_report={final_report is not None} "
+        f"response_keys={list(response.phase_summaries.keys())}"
+    )
+    return response
 
 
 @router.get(
