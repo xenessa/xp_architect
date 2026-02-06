@@ -763,20 +763,24 @@ async def sa_verify_progress(context, sa_email, sa_password="test123"):
     
     print_step("SA VERIFICATION: CHECK PROJECT PROGRESS")
     
-    # Open new tab and login as SA
+    # Open new tab
     page = await context.new_page()
     
-    print_substep("Logging in as SA...")
-    await page.goto(f"{FRONTEND_URL}/login")
-    await page.wait_for_load_state("networkidle")
-    await page.wait_for_timeout(1000)
-    
-    await page.fill('#email', sa_email)
-    await page.fill('#password', sa_password)
-    await page.click('button[type="submit"]')
-    
+    print_substep("Navigating to SA dashboard...")
+    await page.goto(f"{FRONTEND_URL}/sa/dashboard")
     await page.wait_for_load_state("networkidle")
     await page.wait_for_timeout(2000)
+    
+    # Check if we need to login or if already logged in
+    if "/login" in page.url:
+        print_substep("Logging in as SA...")
+        await page.fill('#email', sa_email)
+        await page.fill('#password', sa_password)
+        await page.click('button[type="submit"]')
+        await page.wait_for_load_state("networkidle")
+        await page.wait_for_timeout(2000)
+    else:
+        print("  ✓ SA already logged in")
     
     # Screenshot SA dashboard with project progress
     await page.screenshot(path="screenshots/sa_verify_01_dashboard.png")

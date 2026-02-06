@@ -376,6 +376,9 @@ def post_approve_summary(
         if phase_num >= 4:
             session.status = SessionStatus.COMPLETED
             session.completed_at = datetime.now(timezone.utc)
+            # Mark the stakeholder's project participation as COMPLETED
+            if project_user.status != ProjectUserStatus.COMPLETED:
+                project_user.status = ProjectUserStatus.COMPLETED
         else:
             session.current_phase = phase_num + 1
         db.commit()
