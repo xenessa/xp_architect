@@ -448,15 +448,19 @@ async def stakeholder_start_discovery(page):
         print_substep("Starting discovery session...")
         await discovery_btn.first.click()
         await page.wait_for_timeout(3000)
+        
+        # Enable demo mode to show End Phase button
+        current_url = page.url
+        await page.goto(current_url + ('&' if '?' in current_url else '?') + 'demo=true')
+        await page.wait_for_timeout(1000)
     else:
         print("  ⚠ No discovery button found")
     
     await page.screenshot(path="screenshots/sh_08_discovery_started.png")
     
-    print("  ✓ Discovery session started")
+    print("  ✓ Discovery session started (demo mode enabled)")
     pause("Discovery started. Press Enter to begin Phase 1...")
     return True
-
 
 async def send_message_and_wait(page, message, screenshot_name):
     """Send a chat message and wait for AI response."""
@@ -527,7 +531,25 @@ async def end_phase_and_approve(page, phase_num):
     
     await page.screenshot(path=f"screenshots/sh_phase{phase_num}_approved.png")
     
-    print(f"  ✓ Phase {phase_num} summary approved")
+    # Step 4: Respond to break offer (skip for phase 4 - final phase)
+    if phase_num < 4:
+        print_substep("Responding to break offer...")
+        await page.wait_for_timeout(2000)  # Wait for AI break offer message
+        
+        await page.screenshot(path=f"screenshots/sh_phase{phase_num}_break_offer.png")
+        
+        # Send "ready to continue" response
+        chat_input = page.locator('textarea').last
+        if await chat_input.count() > 0:
+            await chat_input.fill("Ready to continue")
+            send_btn = page.locator('button:has-text("Send")')
+            if await send_btn.count() > 0:
+                await send_btn.first.click()
+                await page.wait_for_timeout(3000)  # Wait for AI to start next phase
+        
+        await page.screenshot(path=f"screenshots/sh_phase{phase_num}_continuing.png")
+    
+    print(f"  ✓ Phase {phase_num} complete")
     return True
 
 
@@ -724,6 +746,51 @@ async def view_final_report(page):
     print("  ✓ Final report captured")
     return True
 
+async def sa_verify_progress(context, sa_email, sa_password="test123"):
+    """SA logs back in to verify project progress after stakeholder completes discovery."""
+    
+    print_step("SA VERIFICATION: CHECK PROJECT PROGRESS")
+    
+    # Open new tab and login as SA
+    page = await context.new_page()
+    
+    print_substep("Logging in as SA...")
+    await page.goto(f"{FRONTEND_URL}/login")
+    await page.wait_for_load_state("networkidle")
+    await page.wait_for_timeout(1000)
+    
+    await page.fill('#email', sa_email)
+    await page.fill('#password', sa_password)
+    await page.click('button[type="submit"]')
+    
+    await page.wait_for_load_state("networkidle")
+    await page.wait_for_timeout(2000)
+    
+    # Screenshot SA dashboard with project progress
+    await page.screenshot(path="screenshots/sa_verify_01_dashboard.png")
+    print("  ✓ SA Dashboard captured")
+    
+    pause("SA Dashboard showing project progress. Press Enter to view project details...")
+    
+    # Click View to see project detail
+    print_substep("Opening project detail...")
+    view_btn = page.locator('button:has-text("View")')
+    if await view_btn.count() > 0:
+        await view_btn.first.click()
+        await page.wait_for_timeout(2000)
+    
+    await page.screenshot(path="screenshots/sa_verify_02_project_detail_top.png")
+    
+    # Scroll to see stakeholder progress
+    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    await page.wait_for_timeout(500)
+    
+    await page.screenshot(path="screenshots/sa_verify_03_project_detail_bottom.png")
+    print("  ✓ Project detail captured")
+    
+    pause("Project detail showing stakeholder completion. Press Enter to finish...")
+    
+    return page
 
 # =============================================================================
 # MAIN TEST RUNNER

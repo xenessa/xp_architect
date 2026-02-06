@@ -482,6 +482,8 @@ function DiscoveryChat() {
   const draftTimeoutRef = useRef(null);
 
   const DRAFT_STORAGE_KEY = 'discovery_chat_draft';
+  const urlParams = new URLSearchParams(window.location.search);
+  const isDemoMode = urlParams.get('demo') === 'true';
 
   // Restore draft on mount
   useEffect(() => {
@@ -832,20 +834,22 @@ function DiscoveryChat() {
               >
                 Pause Session
               </button>
-              <button
-                type="button"
-                style={{
-                  ...styles.toolbarBtnEndPhase,
-                  ...(toolbarHover === 'endPhase' ? { background: '#eff6ff', borderColor: '#1d4ed8' } : {}),
-                  ...(sending || endingPhase ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
-                }}
-                onClick={handleEndPhaseClick}
-                onMouseEnter={() => !sending && !endingPhase && setToolbarHover('endPhase')}
-                onMouseLeave={() => setToolbarHover(null)}
-                disabled={sending || endingPhase}
-              >
-                {endingPhase ? 'Ending phase…' : 'End Phase'}
-              </button>
+              {isDemoMode && (
+                <button
+                  type="button"
+                  style={{
+                    ...styles.toolbarBtnEndPhase,
+                    ...(toolbarHover === 'endPhase' ? { background: '#eff6ff', borderColor: '#1d4ed8' } : {}),
+                    ...(sending || endingPhase ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
+                  }}
+                  onClick={handleEndPhaseClick}
+                  onMouseEnter={() => !sending && !endingPhase && setToolbarHover('endPhase')}
+                  onMouseLeave={() => setToolbarHover(null)}
+                  disabled={sending || endingPhase}
+                >
+                  {endingPhase ? 'Ending phase…' : 'End Phase'}
+                </button>
+              )}
             </div>
           </div>
           <div style={styles.inputBar}>
