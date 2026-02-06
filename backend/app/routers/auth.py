@@ -149,3 +149,28 @@ def me(
 ) -> UserResponse:
     """Return the current authenticated user (requires valid JWT)."""
     return user_to_response(current_user)
+
+
+@router.delete("/admin/reset-test-data")
+def reset_test_data(db: Session = Depends(get_db)):
+    """Temporary endpoint to clear all test data. REMOVE BEFORE PRODUCTION."""
+    from sqlalchemy import text
+
+    try:
+        db.execute(text("DELETE FROM session_documents"))
+        db.execute(text("DELETE FROM discovery_sessions"))
+        db.execute(text("DELETE FROM project_files"))
+        db.execute(text("DELETE FROM project_users"))
+        db.execute(text("DELETE FROM projects"))
+        db.execute(text("DELETE FROM users"))
+        db.commit()
+        return {"status": "success", "message": "All test data cleared"}
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/admin/reset-test-data")
+def reset_test_data_get(db: Session = Depends(get_db)):
+    """GET version for easy browser testing."""
+    return reset_test_data(db)
