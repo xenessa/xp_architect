@@ -476,6 +476,7 @@ function DiscoveryChat() {
   const [loadingReport, setLoadingReport] = useState(false);
   const [showEndPhaseConfirm, setShowEndPhaseConfirm] = useState(false);
   const [toolbarHover, setToolbarHover] = useState(null);
+  const [waitingToBeginPhase, setWaitingToBeginPhase] = useState(false);
   const chatEndRef = useRef(null);
   const chatAreaRef = useRef(null);
   const hasInitializedRef = useRef(false);
@@ -573,41 +574,6 @@ function DiscoveryChat() {
         .finally(() => setSending(false));
       return;
     }
-
-    if (session.status === 'IN_PROGRESS') {
-      if (hasMessages) {
-        setSending(true);
-        setError('');
-        sendMessage('RESUME_SESSION')
-          .then((res) => {
-            const { assistant_message } = res.data;
-            setMessages((prev) => [...prev, { role: 'assistant', content: assistant_message }]);
-            return loadSession();
-          })
-          .catch((err) => {
-            const detail = err.response?.data?.detail;
-            setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to resume session.');
-            hasInitializedRef.current = false;
-          })
-          .finally(() => setSending(false));
-      } else {
-        setSending(true);
-        setError('');
-        setMessages((prev) => [...prev, { role: 'user', content: 'BEGIN_SESSION' }]);
-        sendMessage('BEGIN_SESSION')
-          .then((res) => {
-            const { assistant_message } = res.data;
-            setMessages((prev) => [...prev, { role: 'assistant', content: assistant_message }]);
-            return loadSession();
-          })
-          .catch((err) => {
-            const detail = err.response?.data?.detail;
-            setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to start session.');
-            hasInitializedRef.current = false;
-          })
-          .finally(() => setSending(false));
-      }
-    }
   }, [session]);
 
   useEffect(() => {
@@ -667,25 +633,10 @@ function DiscoveryChat() {
             },
           ]);
         } else if (newSession.current_phase > prevPhase) {
-          setSubmittingApproval(false);
           setMessages((prev) => [
             ...prev,
             { type: 'phase_complete', phase: prevPhase },
           ]);
-          setSending(true);
-          setError('');
-          try {
-            const beginRes = await sendMessage('BEGIN_PHASE');
-            const { assistant_message } = beginRes.data;
-            setMessages((prev) => [...prev, { role: 'assistant', content: assistant_message }]);
-            await loadSession();
-          } catch (err) {
-            const detail = err.response?.data?.detail;
-            setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to start next phase.');
-          } finally {
-            setSending(false);
-          }
-          return;
         }
       } else {
         setSummaryForApproval({
@@ -720,6 +671,23 @@ function DiscoveryChat() {
   const closeReport = () => setReportContent(null);
 
   const handlePauseSession = () => navigate('/stakeholder-dashboard');
+  const handleBeginPhaseClick = async () => {
+    if (sending || endingPhase || !session || session.status === 'COMPLETED') return;
+    setSending(true);
+    setError('');
+    try {
+      const res = await sendMessage('BEGIN_PHASE');
+      const { assistant_message } = res.data;
+      setMessages((prev) => [...prev, { role: 'assistant', content: assistant_message }]);
+      await loadSession();
+      setWaitingToBeginPhase(false);
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to start next phase.');
+    } finally {
+      setSending(false);
+    }
+  };
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -753,6 +721,34 @@ function DiscoveryChat() {
       setEndingPhase(false);
     }
   };
+
+  // Track whether we're waiting for the user to explicitly begin the current phase (2-4)
+  useEffect(() => {
+    if (!session) {
+      setWaitingToBeginPhase(false);
+      return;
+    }
+    if (session.status !== 'IN_PROGRESS' || session.current_phase <= 1) {
+      setWaitingToBeginPhase(false);
+      return;
+    }
+    if (!messages || messages.length === 0) {
+      setWaitingToBeginPhase(true);
+      return;
+    }
+    const last = messages[messages.length - 1];
+    if (
+      last &&
+      last.role === 'assistant' &&
+      typeof last.content === 'string' &&
+      last.content.includes('Phase') &&
+      last.content.includes('complete')
+    ) {
+      setWaitingToBeginPhase(true);
+    } else {
+      setWaitingToBeginPhase(false);
+    }
+  }, [session, messages]);
 
   if (loading) {
     return <div style={styles.loadingPage}>Loading session…</div>;
@@ -828,11 +824,11 @@ function DiscoveryChat() {
                   ...styles.toolbarBtnPause,
                   ...(toolbarHover === 'pause' ? { background: '#e2e8f0', borderColor: '#94a3b8' } : {}),
                 }}
-                onClick={handlePauseSession}
+                onClick={waitingToBeginPhase ? handleBeginPhaseClick : handlePauseSession}
                 onMouseEnter={() => setToolbarHover('pause')}
                 onMouseLeave={() => setToolbarHover(null)}
               >
-                Pause Session
+                {waitingToBeginPhase ? 'Begin Phase' : 'Pause Session'}
               </button>
               {isDemoMode && (
                 <button
