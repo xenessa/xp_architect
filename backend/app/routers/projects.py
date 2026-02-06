@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import require_sa_role
-from app.models.project import Project
+from app.models.project import Project, ProjectUser
+from app.models.session import DiscoverySession, SessionStatus
 from app.models.user import User
 from app.schemas.project import (
     ProjectCreate,
@@ -18,6 +19,7 @@ from app.schemas.project import (
     ProjectUpdate,
     ProjectUserAdd,
     ProjectUserResponse,
+    StakeholderDiscoveryResultsResponse,
 )
 from app.services.project import (
     activate_project_user,
@@ -29,6 +31,7 @@ from app.services.project import (
     project_user_to_response,
     update_project,
 )
+from app.services.discovery import generate_final_report
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -220,3 +223,63 @@ def get_progress_route(
             detail="Project not found",
         )
     return get_project_progress(db, project_id)
+
+
+@router.get(
+    "/{project_id}/stakeholders/{user_id}/discovery-results",
+    response_model=StakeholderDiscoveryResultsResponse,
+)
+def get_stakeholder_discovery_results(
+    project_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_sa_role),
+) -> StakeholderDiscoveryResultsResponse:
+    """Return phase summaries and final discovery report for a stakeholder on this project."""
+    project = get_project(db, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    if project.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    # Find the ProjectUser for this project/user
+    project_user = None
+    for pu in project.project_users:
+        if pu.user_id == user_id:
+            project_user = pu
+            break
+
+    if not project_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Stakeholder not found for this project",
+        )
+
+    session: DiscoverySession | None = project_user.session
+    if not session:
+        return StakeholderDiscoveryResultsResponse(phase_summaries={}, final_report=None)
+
+    # Only include approved (non-pending) summaries
+    raw_summaries = session.phase_summaries or {}
+    phase_summaries: dict[str, str] = {}
+    for k, v in raw_summaries.items():
+        if str(k).endswith("_pending"):
+            continue
+        if isinstance(v, str):
+            phase_summaries[str(k)] = v
+
+    final_report: str | None = None
+    if session.status == SessionStatus.COMPLETED and phase_summaries:
+        scope = project.scope
+        final_report = generate_final_report(phase_summaries, scope, session.flagged_items or [])
+
+    return StakeholderDiscoveryResultsResponse(
+        phase_summaries=phase_summaries,
+        final_report=final_report,
+    )

@@ -97,3 +97,10 @@ class ProjectDetailResponse(BaseModel):
     project: ProjectResponse
     users: list[ProjectUserResponse]
     progress: ProjectProgressResponse
+
+
+class StakeholderDiscoveryResultsResponse(BaseModel):
+    """Phase summaries and final report for a single stakeholder's discovery session."""
+
+    phase_summaries: dict[str, str]
+    final_report: str | None = None

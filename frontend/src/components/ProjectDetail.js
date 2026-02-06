@@ -5,6 +5,7 @@ import {
   getProjectProgress,
   addUserToProject,
   activateProjectUser,
+  getStakeholderDiscoveryResults,
 } from '../services/api';
 
 const styles = {
@@ -323,6 +324,10 @@ function ProjectDetail() {
   const [addError, setAddError] = useState('');
   const [activatingId, setActivatingId] = useState(null);
   const [copiedToken, setCopiedToken] = useState(null);
+  const [resultsUser, setResultsUser] = useState(null);
+  const [resultsData, setResultsData] = useState(null);
+  const [resultsLoading, setResultsLoading] = useState(false);
+  const [resultsError, setResultsError] = useState('');
 
   const loadProject = async () => {
     if (!id) return;
@@ -405,6 +410,29 @@ function ProjectDetail() {
       // Best-effort: show a simple error
       setError('Failed to copy invite link. Please try again.');
     }
+  };
+
+  const handleViewResults = async (user) => {
+    if (!id || !user.user_id) return;
+    setResultsUser(user);
+    setResultsData(null);
+    setResultsError('');
+    setResultsLoading(true);
+    try {
+      const res = await getStakeholderDiscoveryResults(id, user.user_id);
+      setResultsData(res.data);
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setResultsError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to load discovery results.');
+    } finally {
+      setResultsLoading(false);
+    }
+  };
+
+  const closeResults = () => {
+    setResultsUser(null);
+    setResultsData(null);
+    setResultsError('');
   };
 
   if (loading) {
@@ -549,6 +577,18 @@ function ProjectDetail() {
                       {copiedToken === u.id ? 'Copied!' : 'Copy Invite Link'}
                     </button>
                   )}
+                  {u.user_id && (
+                    <button
+                      type="button"
+                      style={{
+                        ...styles.activateBtn,
+                        background: '#4b5563',
+                      }}
+                      onClick={() => handleViewResults(u)}
+                    >
+                      View Results
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -594,6 +634,155 @@ function ProjectDetail() {
           {addError && <div style={{ ...styles.error, marginTop: 12 }}>{addError}</div>}
         </section>
       </main>
+      {resultsUser && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15,23,42,0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            zIndex: 1000,
+          }}
+          onClick={closeResults}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              boxShadow: '0 20px 60px rgba(15,23,42,0.4)',
+              maxWidth: 800,
+              width: '100%',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: '#111827' }}>
+                  Discovery Results – {resultsUser.name || resultsUser.email}
+                </h3>
+                <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>
+                  View phase summaries and the final discovery report (if available).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeResults}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: 22,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  color: '#9ca3af',
+                }}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div
+              style={{
+                padding: 20,
+                overflow: 'auto',
+              }}
+            >
+              {resultsLoading && (
+                <div style={{ fontSize: 14, color: '#6b7280' }}>Loading discovery results…</div>
+              )}
+              {resultsError && (
+                <div style={{ ...styles.error, marginBottom: 12 }}>{resultsError}</div>
+              )}
+              {resultsData && (
+                <>
+                  {[1, 2, 3, 4].map((phaseNum) => {
+                    const key = String(phaseNum);
+                    const summary = resultsData.phase_summaries?.[key];
+                    if (!summary) return null;
+                    const phase = PHASES[phaseNum] || `Phase ${phaseNum}`;
+                    return (
+                      <details key={key} style={{ marginBottom: 12 }}>
+                        <summary
+                          style={{
+                            cursor: 'pointer',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: '#111827',
+                            padding: '6px 0',
+                          }}
+                        >
+                          Phase {phaseNum} – {phase}
+                        </summary>
+                        <div
+                          style={{
+                            marginTop: 4,
+                            padding: 12,
+                            borderRadius: 8,
+                            background: '#f9fafb',
+                            border: '1px solid #e5e7eb',
+                            whiteSpace: 'pre-wrap',
+                            fontSize: 14,
+                            color: '#374151',
+                          }}
+                        >
+                          {summary}
+                        </div>
+                      </details>
+                    );
+                  })}
+                  {resultsData.final_report && (
+                    <details open style={{ marginTop: 16 }}>
+                      <summary
+                        style={{
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: '#111827',
+                          padding: '6px 0',
+                        }}
+                      >
+                        Final Discovery Report
+                      </summary>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          padding: 12,
+                          borderRadius: 8,
+                          background: '#f9fafb',
+                          border: '1px solid #e5e7eb',
+                          whiteSpace: 'pre-wrap',
+                          fontSize: 14,
+                          color: '#374151',
+                        }}
+                      >
+                        {resultsData.final_report}
+                      </div>
+                    </details>
+                  )}
+                  {!resultsData.final_report && !resultsData.phase_summaries && !resultsLoading && (
+                    <div style={{ fontSize: 14, color: '#6b7280' }}>
+                      No discovery results are available yet for this stakeholder.
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

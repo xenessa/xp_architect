@@ -45,6 +45,10 @@ export function getProject(id) {
   return api.get(`/api/projects/${id}`);
 }
 
+export function getStakeholderDiscoveryResults(projectId, userId) {
+  return api.get(`/api/projects/${projectId}/stakeholders/${userId}/discovery-results`);
+}
+
 export function addUserToProject(projectId, email, name) {
   return api.post(`/api/projects/${projectId}/users`, { email, name });
 }

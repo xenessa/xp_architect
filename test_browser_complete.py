@@ -495,7 +495,7 @@ async def end_phase_and_approve(page, phase_num):
     print_substep(f"Ending Phase {phase_num}...")
     
     # Step 1: Click End Phase button (opens confirmation modal)
-    end_btn = page.locator('button:has-text("End Phase"), button:has-text("Complete Phase"), button:has-text("Finish Phase")')
+    end_btn = page.locator('button:has-text("End Phase")')
     
     if await end_btn.count() > 0:
         await end_btn.first.click()
@@ -505,7 +505,7 @@ async def end_phase_and_approve(page, phase_num):
     
     await page.screenshot(path=f"screenshots/sh_phase{phase_num}_confirm_modal.png")
     
-    # Step 2: Click "Yes, continue" in the confirmation modal and wait for summary modal
+    # Step 2: Click "Yes, continue" in the confirmation modal
     print_substep("Confirming end phase...")
     confirm_btn = page.locator('button:has-text("Yes, continue"), button:has-text("Yes"), button:has-text("Continue"), button:has-text("Confirm")')
     
@@ -514,56 +514,50 @@ async def end_phase_and_approve(page, phase_num):
     else:
         print("  ⚠ No confirmation button found")
     
-    # Wait for the summary modal to appear (it shows "Phase summary" in the header)
-    print_substep("Waiting for summary modal...")
-    summary_modal = page.locator('text="Phase summary"')
+    # Step 3: Wait for summary modal with Approve button to appear
+    print_substep("Waiting for summary to generate...")
+    approve_btn = page.locator('button:has-text("Approve")')
     try:
-        await summary_modal.wait_for(state="visible", timeout=30000)  # Wait up to 30 seconds
-        print("  ✓ Summary modal appeared")
+        await approve_btn.wait_for(state="visible", timeout=60000)  # Wait up to 60 seconds
+        print("  ✓ Summary ready")
     except:
-        print("  ⚠ Summary modal didn't appear in time")
+        print("  ⚠ Approve button didn't appear in time")
     
-    await page.wait_for_timeout(2000)  # Extra buffer for content to load
+    await page.wait_for_timeout(1000)
     await page.screenshot(path=f"screenshots/sh_phase{phase_num}_summary.png")
     
-    # Step 3: Review and approve summary
+    # Step 4: Review and approve summary
     print_substep(f"Reviewing Phase {phase_num} summary...")
     pause(f"Phase {phase_num} summary displayed. Press Enter to approve...")
     
-    # Try multiple button text variations
-    approve_btn = page.locator('button:has-text("Approve"), button:has-text("Accept"), button:has-text("Confirm"), button:has-text("OK"), button:has-text("Done"), button:has-text("Submit")')
-    
     if await approve_btn.count() > 0:
-        # Use JavaScript click to bypass any overlay
         await approve_btn.first.evaluate("el => el.click()")
-        await page.wait_for_timeout(3000)
+        await page.wait_for_timeout(2000)
     else:
         print("  ⚠ No 'Approve' button found")
-        # Try clicking any visible button in the modal
-        await page.screenshot(path=f"screenshots/sh_phase{phase_num}_no_approve_debug.png")
     
-    # Step 4: Respond to break offer (skip for phase 4 - final phase)
+    await page.screenshot(path=f"screenshots/sh_phase{phase_num}_approved.png")
+    print(f"  ✓ Phase {phase_num} complete")
+    
+    # Step 5: Wait for AI break offer message (phases 1-3 only)
     if phase_num < 4:
-        print_substep("Responding to break offer...")
-        await page.wait_for_timeout(2000)  # Wait for AI break offer message
+        print_substep("Waiting for AI break offer...")
+        await page.wait_for_timeout(8000)  # Give AI time to generate break offer
         
         await page.screenshot(path=f"screenshots/sh_phase{phase_num}_break_offer.png")
         
-        # Send "ready to continue" response
+        print_substep("Responding to break offer...")
         chat_input = page.locator('textarea').last
         if await chat_input.count() > 0:
             await chat_input.fill("Ready to continue")
             send_btn = page.locator('button:has-text("Send")')
             if await send_btn.count() > 0:
-                # Use JavaScript click to bypass any overlay
                 await send_btn.first.evaluate("el => el.click()")
-                await page.wait_for_timeout(3000)  # Wait for AI to start next phase
+                await page.wait_for_timeout(3000)
         
         await page.screenshot(path=f"screenshots/sh_phase{phase_num}_continuing.png")
     
-    print(f"  ✓ Phase {phase_num} complete")
     return True
-
 
 async def stakeholder_phase_1(page):
     """Phase 1: Open Discovery - Team, role, processes, tools."""
@@ -729,16 +723,19 @@ async def view_final_report(page):
     
     print_step("FINAL: DISCOVERY REPORT")
     
-    await page.wait_for_timeout(2000)
+    await page.wait_for_timeout(3000)
     await page.screenshot(path="screenshots/sh_final_01.png")
     
-    # Look for View Report or Results button
-    report_btn = page.locator('button:has-text("Report"), button:has-text("Results"), button:has-text("View"), a:has-text("Report")')
+    # Look for View Report button
+    print_substep("Looking for report button...")
+    report_btn = page.locator('button:has-text("View Report"), button:has-text("View Discovery Report"), a:has-text("Report")')
     
     if await report_btn.count() > 0:
         print_substep("Opening final report...")
         await report_btn.first.click()
-        await page.wait_for_timeout(3000)
+        await page.wait_for_timeout(5000)  # Wait for report to load
+    else:
+        print("  ⚠ No report button found")
     
     await page.screenshot(path="screenshots/sh_final_02_report_top.png")
     
@@ -756,31 +753,33 @@ async def view_final_report(page):
     await page.screenshot(path="screenshots/sh_final_05_report_bottom.png")
     
     print("  ✓ Final report captured")
+    pause("Final report viewed. Press Enter to continue to SA verification...")
     return True
 
-async def sa_verify_progress(context, sa_email, sa_password="test123"):
+async def sa_verify_progress(browser, sa_email, sa_password="test123"):
     """SA logs back in to verify project progress after stakeholder completes discovery."""
     
     print_step("SA VERIFICATION: CHECK PROJECT PROGRESS")
     
-    # Open new tab
+    # Create NEW browser context (fresh session, no shared cookies)
+    print_substep("Opening fresh browser session for SA...")
+    context = await browser.new_context(viewport={"width": 1400, "height": 900})
     page = await context.new_page()
     
-    print_substep("Navigating to SA dashboard...")
-    await page.goto(f"{FRONTEND_URL}/sa/dashboard")
+    print_substep("Navigating to login page...")
+    await page.goto(f"{FRONTEND_URL}/")
     await page.wait_for_load_state("networkidle")
     await page.wait_for_timeout(2000)
     
-    # Check if we need to login or if already logged in
-    if "/login" in page.url:
-        print_substep("Logging in as SA...")
-        await page.fill('#email', sa_email)
-        await page.fill('#password', sa_password)
-        await page.click('button[type="submit"]')
-        await page.wait_for_load_state("networkidle")
-        await page.wait_for_timeout(2000)
-    else:
-        print("  ✓ SA already logged in")
+    await page.screenshot(path="screenshots/sa_verify_00_login_page.png")
+    
+    print_substep("Logging in as SA...")
+    await page.fill('#email', sa_email)
+    await page.fill('#password', sa_password)
+    await page.click('button[type="submit"]')
+    
+    await page.wait_for_load_state("networkidle")
+    await page.wait_for_timeout(2000)
     
     # Screenshot SA dashboard with project progress
     await page.screenshot(path="screenshots/sa_verify_01_dashboard.png")
@@ -806,7 +805,10 @@ async def sa_verify_progress(context, sa_email, sa_password="test123"):
     
     pause("Project detail showing stakeholder completion. Press Enter to finish...")
     
-    return page
+    # Clean up this context
+    await context.close()
+    
+    return True
 
 # =============================================================================
 # MAIN TEST RUNNER
@@ -905,7 +907,7 @@ async def main(headless=False):
             # SA VERIFICATION
             # =================================================================
             
-            sa_verify_page = await sa_verify_progress(context, sa_email)
+            await sa_verify_progress(browser, sa_email)
             
             # =================================================================
             # COMPLETE
