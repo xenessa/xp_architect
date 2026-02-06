@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getSession,
@@ -580,9 +580,53 @@ function DiscoveryChat() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
 
+  // Trigger phase-end flow when a new assistant message contains phase-end phrases
+  const triggerEndPhaseIfNeeded = useCallback(async () => {
+    if (sending || endingPhase || !session || session.status === 'COMPLETED' || summaryForApproval) return;
+    setEndingPhase(true);
+    setError('');
+    try {
+      const res = await sendMessage('next');
+      const { assistant_message: nextMsg, phase_completed: pc, summary: sum } = res.data;
+      if (nextMsg) setMessages((prev) => [...prev, { role: 'assistant', content: nextMsg }]);
+      if (pc && sum) setSummaryForApproval({ summary: sum });
+      await loadSession();
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      setError(Array.isArray(detail) ? detail.join(' ') : detail || 'Failed to end phase.');
+    } finally {
+      setEndingPhase(false);
+    }
+  }, [session, summaryForApproval, sending, endingPhase]);
+
+  useEffect(() => {
+    if (!messages.length) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== 'assistant') return;
+    const content = (last.content || '').toLowerCase();
+    const triggerPhrases = [
+      'compile a summary',
+      'generate a summary',
+      'i have what i need for this phase',
+      'summary for your review',
+      'summary should be appearing',
+      'compile a summary for your review',
+      'generate a summary for your review',
+      'presenting the summary for your review',
+    ];
+    const shouldTrigger = triggerPhrases.some((phrase) => content.includes(phrase));
+    console.log('[DiscoveryChat] New AI message received:', content.substring(0, 80) + (content.length > 80 ? '...' : ''));
+    console.log('[DiscoveryChat] Trigger check:', shouldTrigger, 'summaryForApproval:', !!summaryForApproval, 'sending:', sending, 'endingPhase:', endingPhase);
+    if (shouldTrigger && !summaryForApproval && !sending && !endingPhase) {
+      console.log('[DiscoveryChat] Triggering end phase flow...');
+      triggerEndPhaseIfNeeded();
+    }
+  }, [messages, summaryForApproval, sending, endingPhase, triggerEndPhaseIfNeeded]);
+
   const handleSend = async (e) => {
     e?.preventDefault();
     const text = inputValue.trim();
+    console.log('[DiscoveryChat] handleSend called, text:', text?.substring(0, 50));
     if (!text || sending || !session) return;
     if (session.status === 'COMPLETED') return;
     setMessages((prev) => [...prev, { role: 'user', content: text }]);
@@ -591,6 +635,12 @@ function DiscoveryChat() {
     try {
       const res = await sendMessage(text);
       const { assistant_message, phase_completed, summary, phase_complete_suggested } = res.data;
+      console.log('[DiscoveryChat] API response received:', {
+        hasAssistant: !!assistant_message,
+        phase_completed,
+        hasSummary: !!summary,
+        phase_complete_suggested,
+      });
       setMessages((prev) => [...prev, { role: 'assistant', content: assistant_message }]);
 
       // Auto-trigger phase summary modal when AI signals readiness
