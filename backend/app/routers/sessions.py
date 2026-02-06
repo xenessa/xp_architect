@@ -321,10 +321,10 @@ def post_message(
 
     marker = "[PHASE_COMPLETE]"
     hint_phrases = [
-        "generate a summary",
-        "ready to move on",
-        "let me generate a summary",
-        "let me create a summary",
+        "compile a summary for your review",
+        "generate a summary for your review",
+        "compile a summary for you to review",
+        "generate a summary for you to review",
     ]
     lower_msg = assistant_message.lower()
     phase_complete_suggested = marker in assistant_message or any(
