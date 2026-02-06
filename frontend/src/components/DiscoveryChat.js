@@ -590,11 +590,30 @@ function DiscoveryChat() {
     setError('');
     try {
       const res = await sendMessage(text);
-      const { assistant_message, phase_completed, summary } = res.data;
+      const { assistant_message, phase_completed, summary, phase_complete_suggested } = res.data;
       setMessages((prev) => [...prev, { role: 'assistant', content: assistant_message }]);
-      if (phase_completed && summary) {
+
+      // Auto-trigger phase summary modal when AI signals readiness
+      const triggerPhrases = [
+        'compile a summary for your review',
+        'generate a summary for your review',
+        'compile a summary for you to review',
+        'generate a summary for you to review',
+        'presenting the summary for your review',
+      ];
+      const lowerMsg = (assistant_message || '').toLowerCase();
+      const shouldTriggerSummary =
+        phase_complete_suggested === true || triggerPhrases.some((p) => lowerMsg.includes(p));
+
+      if (shouldTriggerSummary && !phase_completed && !summary) {
+        const nextRes = await sendMessage('next');
+        const { assistant_message: nextMsg, phase_completed: pc, summary: sum } = nextRes.data;
+        if (nextMsg) setMessages((prev) => [...prev, { role: 'assistant', content: nextMsg }]);
+        if (pc && sum) setSummaryForApproval({ summary: sum });
+      } else if (phase_completed && summary) {
         setSummaryForApproval({ summary });
       }
+
       await loadSession();
       setInputValue('');
       try {
