@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models.project import ProjectUser, ProjectUserStatus
 from app.models.session import DiscoverySession, SessionStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.session import (
     AssessmentSubmit,
     PhaseSummaryApproval,
@@ -24,6 +24,7 @@ from app.services.discovery import (
     calculate_style_profile,
     detect_out_of_scope,
     generate_final_report,
+    generate_phase_break_offer_message,
     generate_phase_summary,
     get_assistant_reply,
     get_phase_initial_question,
@@ -67,7 +68,7 @@ def _get_or_create_active_session(db: Session, current_user: User) -> tuple[Disc
     return session, project_user
 
 
-def _session_to_response(session: DiscoverySession) -> SessionResponse:
+def _session_to_response(session: DiscoverySession, is_first_visit: bool | None = None) -> SessionResponse:
     """Build SessionResponse from DiscoverySession, including pending_phase_summary and all_messages."""
     pending = None
     if isinstance(session.phase_summaries, dict):
@@ -81,6 +82,7 @@ def _session_to_response(session: DiscoverySession) -> SessionResponse:
         completed_at=session.completed_at,
         pending_phase_summary=pending,
         all_messages=all_messages,
+        is_first_visit=is_first_visit,
     )
 
 
@@ -116,9 +118,22 @@ def get_session(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_dependency),
 ) -> SessionResponse:
-    """Get current user's active discovery session. Creates one if none exists (user must have ACTIVE ProjectUser)."""
+    """Get current user's active discovery session.
+
+    Creates one if none exists (user must have ACTIVE ProjectUser).
+    Also tracks the user's first visit to the stakeholder dashboard (after assessment).
+    """
     session, _ = _get_or_create_active_session(db, current_user)
-    return _session_to_response(session)
+
+    is_first_visit = False
+    if current_user.role == UserRole.STAKEHOLDER and current_user.assessment_completed:
+        if getattr(current_user, "first_dashboard_visit_at", None) is None:
+            current_user.first_dashboard_visit_at = datetime.now(timezone.utc)
+            db.commit()
+            db.refresh(current_user)
+            is_first_visit = True
+
+    return _session_to_response(session, is_first_visit=is_first_visit)
 
 
 @router.post("/message", response_model=SessionMessageResponse)
@@ -348,6 +363,16 @@ def post_approve_summary(
         if pending_key in phase_summaries:
             del phase_summaries[pending_key]
         session.phase_summaries = phase_summaries
+        # Add a break-offer transition message based on the approved summary
+        next_phase_num: int | None = None if phase_num >= 4 else phase_num + 1
+        break_message = generate_phase_break_offer_message(
+            phase_num=phase_num,
+            approved_summary=pending_summary,
+            next_phase_num=next_phase_num,
+        )
+        all_messages = list(session.all_messages or [])
+        all_messages.append({"role": "assistant", "content": break_message})
+        session.all_messages = all_messages
         if phase_num >= 4:
             session.status = SessionStatus.COMPLETED
             session.completed_at = datetime.now(timezone.utc)

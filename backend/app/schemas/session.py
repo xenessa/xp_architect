@@ -31,6 +31,7 @@ class SessionResponse(BaseModel):
     completed_at: datetime | None
     pending_phase_summary: str | None = None  # when awaiting approval
     all_messages: list[dict] = []  # conversation history [{role, content}, ...]
+    is_first_visit: bool | None = None
 
     model_config = {"from_attributes": True}
 

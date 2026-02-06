@@ -144,6 +144,7 @@ function StakeholderDashboard() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -161,7 +162,10 @@ function StakeholderDashboard() {
       setError('');
       try {
         const res = await getSession();
-        if (!cancelled) setSession(res.data);
+        if (!cancelled) {
+          setSession(res.data);
+          setIsFirstVisit(res.data.is_first_visit ?? false);
+        }
       } catch (err) {
         if (cancelled) return;
         const detail = err.response?.data?.detail;
@@ -199,7 +203,9 @@ function StakeholderDashboard() {
     <div style={styles.page}>
       <div style={styles.container}>
         <header style={styles.header}>
-          <h1 style={styles.welcome}>Welcome back, {user?.name ?? 'there'}</h1>
+          <h1 style={styles.welcome}>
+            {isFirstVisit ? 'Welcome' : 'Welcome back'}, {user?.name ?? 'there'}
+          </h1>
           <button type="button" style={styles.logoutBtn} onClick={handleLogout}>
             Logout
           </button>

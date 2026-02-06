@@ -25,6 +25,7 @@ from app.services.discovery import (
     calculate_style_profile,
     detect_out_of_scope,
     generate_final_report,
+    generate_phase_break_offer_message,
     generate_phase_summary,
     get_assistant_reply,
     get_phase_initial_question,
@@ -243,6 +244,16 @@ def approve_summary(
         summaries[str(phase_num)] = initial_summary
         del summaries[pending_key]
         session.phase_summaries = summaries
+        # Add a break-offer transition message based on the approved summary
+        next_phase_num: int | None = None if phase_num >= 4 else phase_num + 1
+        break_message = generate_phase_break_offer_message(
+            phase_num=phase_num,
+            approved_summary=initial_summary,
+            next_phase_num=next_phase_num,
+        )
+        all_messages = list(session.all_messages or [])
+        all_messages.append({"role": "assistant", "content": break_message})
+        session.all_messages = all_messages
         if phase_num >= 4:
             session.status = SessionStatus.COMPLETED
             session.completed_at = datetime.now(timezone.utc)

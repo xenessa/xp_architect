@@ -403,6 +403,81 @@ Format this as a clear, professional document. Use bullet points and clear headi
         return "Error generating report."
 
 
+def generate_phase_break_offer_message(
+    phase_num: int,
+    approved_summary: str,
+    next_phase_num: int | None = None,
+) -> str:
+    """Generate a short 'break offer' transition message after a phase is approved.
+
+    Message structure:
+    - Phase X complete line
+    - One-sentence summary based on approved_summary
+    - Next-phase preview (if any)
+    - Gentle suggestion that the user can take a break using the Pause button
+    """
+    phase = PHASES.get(phase_num, PHASES[1])
+    next_phase = PHASES.get(next_phase_num) if next_phase_num is not None else None
+
+    # Fallback deterministic behavior if LLM call fails
+    fallback_next_line = ""
+    if next_phase:
+        fallback_next_line = (
+            f"Next, we'll focus on Phase {next_phase_num}: {next_phase['name']} — "
+            f"{next_phase['description']}"
+        )
+    else:
+        fallback_next_line = "You've completed the full discovery journey. Great work capturing all of this context."
+
+    prompt = f"""You are writing a SHORT transition message between phases of a discovery interview.
+
+Phase just completed: Phase {phase_num} - {phase['name']}
+
+Approved phase summary (for context, do NOT repeat it verbatim):
+{approved_summary}
+
+Next phase: {('Phase ' + str(next_phase_num) + ' - ' + next_phase['name'] + ' — ' + next_phase['description']) if next_phase else 'None (this was the final phase)'}
+
+Write a brief message in this exact structure, using 2-4 short paragraphs:
+
+1) First line: "Phase {phase_num} complete! ✓"
+2) Second line: One concise sentence summarizing what you covered in this phase, based on the approved summary.
+3) Third line:
+   - If there IS a next phase: one short sentence starting with "Next, we'll..." that describes what the next phase will focus on, based on the next phase description.
+   - If there is NO next phase (final phase): instead, congratulate them on completing discovery and reinforce that they've finished all phases.
+4) Final line: A sentence offering a break and mentioning the Pause button, for example:
+   "Feel free to take a break if you need one (use the Pause button at the bottom), or let me know when you're ready to continue."
+
+Important style guidelines:
+- Be warm, encouraging, and concise.
+- Do NOT include any markdown, bullets, or headings.
+- Keep everything under 5 total sentences.
+"""
+
+    try:
+        client = _get_client()
+        response = client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = (response.content[0].text or "").strip()
+        if text:
+            return text
+    except Exception:
+        pass
+
+    # Fallback if Anthropic call fails
+    summary_first_line = approved_summary.strip().splitlines()[0] if approved_summary else ""
+    return (
+        f"Phase {phase_num} complete! ✓\n\n"
+        f"We covered the key points from this phase, including: {summary_first_line[:200]}...\n\n"
+        f"{fallback_next_line}\n\n"
+        "Feel free to take a break if you need one (use the Pause button at the bottom), "
+        "or let me know when you're ready to continue."
+    )
+
+
 def get_assistant_reply(system_prompt: str, messages: list[dict]) -> str:
     """Single turn: send messages to Claude with system prompt, return assistant reply text."""
     client = _get_client()
